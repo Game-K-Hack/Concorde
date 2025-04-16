@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Concorde",
+  "version": "1.0",
+  "description": "Widget pour personaliser le portail SmartRH",
+  "icons": {
+      "16": "assets/icons/icon-16.png",
+      "32": "assets/icons/icon-32.png",
+      "48": "assets/icons/icon-48.png",
+      "64": "assets/icons/icon-64.png",
+      "128": "assets/icons/icon-128.png",
+      "256": "assets/icons/icon-256.png"
+  },
+  "permissions": [
+    "storage",
+    "tabs", 
+    "activeTab"
+  ],
+  "host_permissions": [
+      "https://portail-rh.algam.net/*"
+  ],
+  "content_scripts": [{
+      "matches": ["https://portail-rh.algam.net/smartw080/srh/smartrh/index.html*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+  }],
+  "web_accessible_resources": [{
+      "resources": ["injected.js", "modules/*.js", "assets/**"],
+      "matches": ["https://portail-rh.algam.net/*"]
+  }],
+  "browser_specific_settings": {
+      "gecko": {
+          "update_url": "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/updates.json"
+      }
+  }
+}

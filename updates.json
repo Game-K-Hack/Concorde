@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "{993e889a-1089-4011-8d47-355bbd232020}": {
+      "updates": [
+        {
+          "version": "1.0",
+          "update_link": "https://github.com/Game-K-Hack/SmartBalance/releases/download/1.0/SmartBalance.xpi"
+        }
+      ]
+    }
+  }
+}
