@@ -10,7 +10,7 @@ function injectModule(code) {
     fetch(browser.runtime.getURL(`modules/${code}.js`))
         .then(response => response.text())
         .then(text => {
-            let m = text.match(/%file\.[a-zA-Z0-9.-_]{1,50}%/);
+            let m = text.match(/%file\.[a-zA-Z0-9._-]{1,50}%/);
             if (m != null || m != undefined) {
                 for (let key of m) {
                     key = key.split("%file.")[1]
@@ -63,6 +63,8 @@ function injectScript() {
     s.type = "module"; // important pour pouvoir faire import dynamique ensuite
     (document.head || document.documentElement).appendChild(s);
     s.remove();
+
+    injectModule("__init__");
 }
 
 if (document.readyState === "loading") {
