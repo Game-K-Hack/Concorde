@@ -1,7 +1,15 @@
 (function () {
+    const module_name = "injected";
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
-    iframe.contentWindow.console.log("[DEBUG] (injected) loaded");
+    console.log = iframe.contentWindow.console.log;
+    console.debug = function(...data) { console.log("[DEBUG] " + module_name + " " + data); }
+    console.debug("loaded");
+
+    let s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js";
+    document.head.appendChild(s);
+    console.debug("lib added");
 
     let oldcode = null;
 
@@ -10,7 +18,7 @@
 
         if (code && code != oldcode) {
             oldcode = code;
-            iframe.contentWindow.console.log("[DEBUG] code: " + code);
+            console.debug("code: " + code);
             window.postMessage({ source: "concorde", codeSRH: code }, "*");
         }
     }

@@ -1,35 +1,31 @@
 (function () {
+    const module_name = "__init__";
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
-    iframe.contentWindow.console.log("[DEBUG] (module:__init__) loaded");
+    console.log = iframe.contentWindow.console.log;
+    console.debug = function(...data) { console.log("[DEBUG] " + module_name + " " + data); }
+    console.debug("loaded");
 
     // Fonction pour créer et afficher le panneau de configuration
-    function afficherPanneauConfig() {
+    function afficherPanneauConfig(configData) {
         let elm = document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`);
         if (elm) elm.setAttribute("class", "cs-menu-bar-item cs-menu-bar-item-active");
-        // Vérifier si le panneau existe déjà et le supprimer si c'est le cas
-        const panneauExistant = document.getElementById(
-            "panneau-config-complet"
-        );
-        if (panneauExistant) {
-            panneauExistant.remove();
-        }
 
+        // Vérifier si le panneau existe déjà et le supprimer si c'est le cas
+        const panneauExistant = document.getElementById("panneau-config-complet");
+        if (panneauExistant) { panneauExistant.remove(); }
+        
         // Obtenir les dimensions du contenu principal pour adapter notre panneau
-        const mainContent =
-            document.getElementById("middle").querySelector(`div[class="middlePart"] div[id="main-tabs"]`) ||
-            document.getElementById("main-tabs");
+        const mainContent = document.getElementById("middle").querySelector(`div[class="middlePart"] div[id="main-tabs"]`) || document.getElementById("main-tabs");
         if (!mainContent) {
-            console.error(
-                "Impossible de trouver l'élément principal du contenu"
-            );
+            console.error("Impossible de trouver l'élément principal du contenu");
             return;
         }
-
+        
         // Création du panneau de configuration
         const panneauConfig = document.createElement("div");
         panneauConfig.id = "panneau-config-complet";
-
+        
         // Styles pour que le panneau prenne tout l'espace disponible
         panneauConfig.style.position = "absolute";
         panneauConfig.style.top = "0";
@@ -41,7 +37,7 @@
         panneauConfig.style.display = "flex";
         panneauConfig.style.flexDirection = "column";
         panneauConfig.style.overflow = "auto";
-
+        
         // En-tête du panneau de configuration
         const enTete = document.createElement("div");
         enTete.style.display = "flex";
@@ -51,7 +47,7 @@
         enTete.style.backgroundColor = "#fff";
         enTete.style.borderBottom = "1px solid #ddd";
         enTete.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-
+        
         // Titre du panneau
         const titre = document.createElement("h2");
         titre.textContent = "Configuration";
@@ -59,7 +55,7 @@
         titre.style.fontSize = "18px";
         titre.style.fontWeight = "bold";
         titre.style.color = "#333";
-
+        
         // Bouton de fermeture
         const btnFermer = document.createElement("button");
         btnFermer.textContent = "✕ Fermer";
@@ -69,265 +65,297 @@
         btnFermer.style.borderRadius = "4px";
         btnFermer.style.cursor = "pointer";
         btnFermer.style.fontSize = "14px";
+        btnFermer.style.borderColor = "#fa3737";
+        btnFermer.style.color = "#fa3737";
         btnFermer.onclick = fermerPanneauConfig;
-
+        
         enTete.appendChild(titre);
         enTete.appendChild(btnFermer);
         panneauConfig.appendChild(enTete);
-
+        
         // Corps du panneau de configuration
         const corpsConfig = document.createElement("div");
         corpsConfig.style.padding = "20px";
         corpsConfig.style.flex = "1";
         corpsConfig.style.overflow = "auto";
+        
+        // Parcourir la structure de données pour créer les sections
+        configData.forEach((section, index) => {
+            // Création d'une boîte de contenu pour la section
+            const csBox = document.createElement("div");
+            csBox.className = "cs-box";
+            csBox.style.backgroundColor = "#fff";
+            csBox.style.border = "1px solid #ddd";
+            csBox.style.borderRadius = "4px";
+            csBox.style.marginBottom = "20px";
+            
+            // En-tête de la boîte
+            const csTop = document.createElement("div");
+            csTop.className = "cs-top";
+            csTop.style.padding = "10px";
+            csTop.style.borderBottom = "1px solid #ddd";
+            csTop.style.display = "flex";
+            csTop.style.alignItems = "center";
+            
+            const sectionIcon = document.createElement("div");
+            sectionIcon.className = "section-icon";
+            sectionIcon.style.width = "16px";
+            sectionIcon.style.height = "16px";
+            sectionIcon.style.marginRight = "10px";
+            sectionIcon.style.backgroundImage = 'url("../img/icon/blanc-16x16/parametre-3.png")';
+            
+            const sectionTitle = document.createElement("div");
+            sectionTitle.className = "title";
+            sectionTitle.innerHTML = `<span>${section.title}</span>`;
+            
+            csTop.appendChild(sectionIcon);
+            csTop.appendChild(sectionTitle);
+            csBox.appendChild(csTop);
+            
+            // Contenu de la boîte
+            const csContent = document.createElement("div");
+            csContent.className = "content";
+            csContent.style.padding = "15px";
+            
+            // Parcourir les groupes de paramètres dans la section
+            for (const groupKey in section) {
+                if (groupKey !== "title") {
+                    const group = section[groupKey];
 
-        // Création d'une boîte de contenu similaire à celle que vous avez dans votre interface
-        const csBox = document.createElement("div");
-        csBox.className = "cs-box";
-        csBox.style.backgroundColor = "#fff";
-        csBox.style.border = "1px solid #ddd";
-        csBox.style.borderRadius = "4px";
-        csBox.style.marginBottom = "20px";
+                    // Vérifier si le groupe a un titre
+                    let groupTitle = "";
+                    if (group.title) {
+                        groupTitle = group.title;
+                    }
 
-        // En-tête de la boîte
-        const csTop = document.createElement("div");
-        csTop.className = "cs-top";
-        csTop.style.padding = "10px";
-        csTop.style.borderBottom = "1px solid #ddd";
-        csTop.style.display = "flex";
-        csTop.style.alignItems = "center";
+                    // Créer le groupe de paramètres
+                    const paramGroup = document.createElement("div");
+                    paramGroup.style.marginBottom = "20px";
 
-        const sectionIcon = document.createElement("div");
-        sectionIcon.className = "section-icon";
-        sectionIcon.style.width = "16px";
-        sectionIcon.style.height = "16px";
-        sectionIcon.style.marginRight = "10px";
-        sectionIcon.style.backgroundImage =
-            'url("../img/icon/blanc-16x16/parametre-3.png")';
+                    // Ajouter le titre du groupe si présent
+                    if (groupTitle) {
+                        const titreGroupe = document.createElement("h3");
+                        titreGroupe.textContent = groupTitle;
+                        titreGroupe.style.fontSize = "16px";
+                        titreGroupe.style.marginBottom = "10px";
+                        titreGroupe.style.borderBottom = "1px solid #eee";
+                        titreGroupe.style.paddingBottom = "5px";
+                        paramGroup.appendChild(titreGroupe);
+                    }
 
-        const sectionTitle = document.createElement("div");
-        sectionTitle.className = "title";
-        sectionTitle.innerHTML = "<span>Paramètres généraux</span>";
+                    // Parcourir les paramètres du groupe
+                    for (const paramKey in group) {
+                        if (paramKey !== "title") {
+                            const param = group[paramKey];
 
-        csTop.appendChild(sectionIcon);
-        csTop.appendChild(sectionTitle);
-        csBox.appendChild(csTop);
+                            const paramDiv = document.createElement("div");
+                            paramDiv.style.display = "flex";
+                            paramDiv.style.alignItems = "flex-start";
+                            paramDiv.style.marginBottom = "8px";
 
-        // Contenu de la boîte
-        const csContent = document.createElement("div");
-        csContent.className = "content";
-        csContent.style.padding = "15px";
+                            switch (param.type) {
+                                case "checkbox":
+                                    const input = document.createElement("input");
+                                    input.type = "checkbox";
+                                    input.id = paramKey;
+                                    input.checked = param.checked;
+                                    input.style.marginRight = "10px";
+                                    input.style.marginTop = "3px"; // Aligner avec le texte
 
-        // Groupe de paramètres 1
-        const groupe1 = createParamGroup("Affichage", [
-            {
-                type: "checkbox",
-                label: "Afficher les utilisateurs inactifs",
-                id: "show-inactive",
-                checked: false,
-            },
-            {
-                type: "checkbox",
-                label: "Mode compact",
-                id: "compact-mode",
-                checked: true,
-            },
-            {
-                type: "select",
-                label: "Thème",
-                id: "theme-select",
-                options: ["Défaut", "Sombre", "Clair", "Personnalisé"],
-            },
-        ]);
+                                    const label = document.createElement("label");
+                                    label.htmlFor = paramKey;
+                                    label.textContent = param.label;
 
-        // Groupe de paramètres 2
-        const groupe2 = createParamGroup("Données", [
-            {
-                type: "checkbox",
-                label: "Synchronisation automatique",
-                id: "auto-sync",
-                checked: true,
-            },
-            {
-                type: "select",
-                label: "Fréquence de rafraîchissement",
-                id: "refresh-rate",
-                options: [
-                    "30 secondes",
-                    "1 minute",
-                    "5 minutes",
-                    "15 minutes",
-                    "30 minutes",
-                    "1 heure",
-                ],
-            },
-            {
-                type: "text",
-                label: "Nombre maximal d'éléments",
-                id: "max-items",
-                value: "100",
-            },
-        ]);
+                                    paramDiv.appendChild(input);
+                                    paramDiv.appendChild(label);
+                                    break;
 
-        // Groupe de paramètres 3
-        const groupe3 = createParamGroup("Filtres par défaut", [
-            { type: "checkbox", label: "Nom", id: "filter-nom", checked: true },
-            {
-                type: "checkbox",
-                label: "Prénom",
-                id: "filter-prenom",
-                checked: true,
-            },
-            {
-                type: "checkbox",
-                label: "Société",
-                id: "filter-societe",
-                checked: false,
-            },
-            {
-                type: "checkbox",
-                label: "Emploi",
-                id: "filter-emploi",
-                checked: false,
-            },
-            {
-                type: "checkbox",
-                label: "Établissement",
-                id: "filter-etablissement",
-                checked: false,
-            },
-        ]);
+                                case "select":
+                                    const labelSelect = document.createElement("label");
+                                    labelSelect.htmlFor = paramKey;
+                                    labelSelect.textContent = param.label + ": ";
+                                    labelSelect.style.marginRight = "10px";
+                                    labelSelect.style.width = "180px";
 
-        csContent.appendChild(groupe1);
-        csContent.appendChild(groupe2);
-        csContent.appendChild(groupe3);
-        csBox.appendChild(csContent);
+                                    const select = document.createElement("select");
+                                    select.id = paramKey;
+                                    select.style.padding = "4px";
+                                    select.style.borderRadius = "4px";
+                                    select.style.border = "1px solid #ddd";
 
-        corpsConfig.appendChild(csBox);
+                                    param.options.forEach((option) => {
+                                        const opt = document.createElement("option");
+                                        opt.value = option.toLowerCase().replace(" ", "-");
+                                        opt.textContent = option;
+                                        select.appendChild(opt);
+                                    });
 
-        // Zone des boutons d'action en bas
-        const zoneActions = document.createElement("div");
-        zoneActions.style.padding = "15px 20px";
-        zoneActions.style.backgroundColor = "#fff";
-        zoneActions.style.borderTop = "1px solid #ddd";
-        zoneActions.style.display = "flex";
-        zoneActions.style.justifyContent = "flex-end";
-        zoneActions.style.gap = "10px";
+                                    paramDiv.appendChild(labelSelect);
+                                    paramDiv.appendChild(select);
+                                    break;
 
-        const btnAnnuler = document.createElement("button");
-        btnAnnuler.textContent = "Annuler";
-        btnAnnuler.style.padding = "8px 16px";
-        btnAnnuler.style.backgroundColor = "#f0f0f0";
-        btnAnnuler.style.border = "1px solid #ddd";
-        btnAnnuler.style.borderRadius = "4px";
-        btnAnnuler.style.cursor = "pointer";
-        btnAnnuler.onclick = fermerPanneauConfig;
+                                case "text":
+                                    const labelText = document.createElement("label");
+                                    labelText.htmlFor = paramKey;
+                                    labelText.textContent = param.label + ": ";
+                                    labelText.style.marginRight = "10px";
+                                    labelText.style.width = "180px";
 
-        const btnAppliquer = document.createElement("button");
-        btnAppliquer.textContent = "Appliquer";
-        btnAppliquer.style.padding = "8px 16px";
-        btnAppliquer.style.backgroundColor = "#4285f4";
-        btnAppliquer.style.color = "white";
-        btnAppliquer.style.border = "none";
-        btnAppliquer.style.borderRadius = "4px";
-        btnAppliquer.style.cursor = "pointer";
-        btnAppliquer.onclick = () => {
-            // Logique pour sauvegarder les configurations
-            console.log("Configuration appliquée !");
-            fermerPanneauConfig();
-        };
+                                    const inputText = document.createElement("input");
+                                    inputText.type = "text";
+                                    inputText.id = paramKey;
+                                    inputText.value = param.value || "";
+                                    inputText.style.padding = "4px";
+                                    inputText.style.borderRadius = "4px";
+                                    inputText.style.border = "1px solid #ddd";
 
-        zoneActions.appendChild(btnAnnuler);
-        zoneActions.appendChild(btnAppliquer);
+                                    paramDiv.appendChild(labelText);
+                                    paramDiv.appendChild(inputText);
+                                    break;
 
+                                case "paragraphe":
+                                    const paragraphe = document.createElement("p");
+                                    paragraphe.innerHTML = param.value;
+                                    paragraphe.style.margin = "0 0 10px 0";
+                                    paragraphe.style.color = "#666";
+                                    paragraphe.style.fontStyle = "italic";
+
+                                    paramDiv.style.display = "block"; // Changer l'affichage pour un paragraphe
+                                    paramDiv.appendChild(paragraphe);
+                                    break;
+
+                                // Vous pouvez ajouter d'autres types ici si nécessaire
+                            }
+
+                            paramGroup.appendChild(paramDiv);
+                        }
+                    }
+
+                    csContent.appendChild(paramGroup);
+                }
+            }
+
+            csBox.appendChild(csContent);
+            corpsConfig.appendChild(csBox);
+        });
+        
         panneauConfig.appendChild(corpsConfig);
-        panneauConfig.appendChild(zoneActions);
 
         // Ajouter le panneau de configuration au contenu principal
         mainContent.appendChild(panneauConfig);
-
-        // Fonction pour créer un groupe de paramètres
-        function createParamGroup(titre, params) {
-            const groupe = document.createElement("div");
-            groupe.style.marginBottom = "20px";
-
-            const titreGroupe = document.createElement("h3");
-            titreGroupe.textContent = titre;
-            titreGroupe.style.fontSize = "16px";
-            titreGroupe.style.marginBottom = "10px";
-            titreGroupe.style.borderBottom = "1px solid #eee";
-            titreGroupe.style.paddingBottom = "5px";
-
-            groupe.appendChild(titreGroupe);
-
-            // Créer les paramètres dans le groupe
-            params.forEach((param) => {
-                const paramDiv = document.createElement("div");
-                paramDiv.style.display = "flex";
-                paramDiv.style.alignItems = "center";
-                paramDiv.style.marginBottom = "8px";
-
-                if (param.type === "checkbox") {
-                    const input = document.createElement("input");
-                    input.type = "checkbox";
-                    input.id = param.id;
-                    input.checked = param.checked;
-                    input.style.marginRight = "10px";
-
-                    const label = document.createElement("label");
-                    label.htmlFor = param.id;
-                    label.textContent = param.label;
-
-                    paramDiv.appendChild(input);
-                    paramDiv.appendChild(label);
-                } else if (param.type === "select") {
-                    const label = document.createElement("label");
-                    label.htmlFor = param.id;
-                    label.textContent = param.label + ": ";
-                    label.style.marginRight = "10px";
-                    label.style.width = "180px";
-
-                    const select = document.createElement("select");
-                    select.id = param.id;
-                    select.style.padding = "4px";
-                    select.style.borderRadius = "4px";
-                    select.style.border = "1px solid #ddd";
-
-                    param.options.forEach((option) => {
-                        const opt = document.createElement("option");
-                        opt.value = option.toLowerCase().replace(" ", "-");
-                        opt.textContent = option;
-                        select.appendChild(opt);
-                    });
-
-                    paramDiv.appendChild(label);
-                    paramDiv.appendChild(select);
-                } else if (param.type === "text") {
-                    const label = document.createElement("label");
-                    label.htmlFor = param.id;
-                    label.textContent = param.label + ": ";
-                    label.style.marginRight = "10px";
-                    label.style.width = "180px";
-
-                    const input = document.createElement("input");
-                    input.type = "text";
-                    input.id = param.id;
-                    input.value = param.value;
-                    input.style.padding = "4px";
-                    input.style.borderRadius = "4px";
-                    input.style.border = "1px solid #ddd";
-
-                    paramDiv.appendChild(label);
-                    paramDiv.appendChild(input);
-                }
-
-                groupe.appendChild(paramDiv);
-            });
-
-            return groupe;
-        }
-
     }
+
+    // Récupérer l'identifiant de l'utilisateur
+    const userID = CryptoJS.SHA256(srh.user.nom + srh.user.prenom + "|" + srh.user.id).toString(CryptoJS.enc.Hex);
+
+    // Structure de données pour la configuration
+    const initroot = [
+        {
+            title: "Paramètres généraux",
+            idaff: {
+                title: "Affichage",
+                idesc: {
+                    type: "paragraphe",
+                    value: "Modifier les paramètres d'affichage",
+                },
+                "show-inactive": {
+                    type: "checkbox",
+                    label: "Afficher les utilisateurs inactifs",
+                    checked: false,
+                },
+                "compact-mode": {
+                    type: "checkbox",
+                    label: "Mode compact",
+                    checked: true,
+                },
+                "theme-select": {
+                    type: "select",
+                    label: "Thème",
+                    options: ["Défaut", "Sombre", "Clair", "Personnalisé"],
+                },
+            },
+            iddata: {
+                title: "Données",
+                idesc: {
+                    type: "paragraphe",
+                    value: "Paramètres de synchronisation des données",
+                },
+                "auto-sync": {
+                    type: "checkbox",
+                    label: "Synchronisation automatique",
+                    checked: true,
+                },
+                "refresh-rate": {
+                    type: "select",
+                    label: "Fréquence de rafraîchissement",
+                    options: [
+                        "30 secondes",
+                        "1 minute",
+                        "5 minutes",
+                        "15 minutes",
+                        "30 minutes",
+                        "1 heure",
+                    ],
+                },
+                "max-items": {
+                    type: "text",
+                    label: "Nombre maximal d'éléments",
+                    value: "100",
+                },
+            },
+        },
+        {
+            title: "Paramètres avancés",
+            idfilters: {
+                title: "Filtres par défaut",
+                idesc: {
+                    type: "paragraphe",
+                    value: "Définir les filtres qui seront activés par défaut",
+                },
+                "filter-nom": {
+                    type: "checkbox",
+                    label: "Nom",
+                    checked: true,
+                },
+                "filter-prenom": {
+                    type: "checkbox",
+                    label: "Prénom",
+                    checked: true,
+                },
+                "filter-societe": {
+                    type: "checkbox",
+                    label: "Société",
+                    checked: false,
+                },
+                "filter-emploi": {
+                    type: "checkbox",
+                    label: "Emploi",
+                    checked: false,
+                },
+                "filter-etablissement": {
+                    type: "checkbox",
+                    label: "Établissement",
+                    checked: false,
+                },
+            },
+            idmisc: {
+                title: "Divers",
+                idesc: {
+                    type: "paragraphe",
+                    value: "Autres paramètres qui seront définis très bientôt",
+                },
+            },
+        },
+        {
+            title: "Information", 
+            idinfo: {
+                idinfodesc: {
+                    type: "paragraphe", 
+                    value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <strong>concorde.algam@laposte.net</strong><br><br>Version: 1.0<br>Identifiant: " + userID
+                }
+            }
+        }
+    ];
 
     // Fonction pour fermer le panneau de configuration
     function fermerPanneauConfig() {
@@ -345,10 +373,12 @@
         item.setAttribute("class", "cs-menu-bar-item");
         item.setAttribute("data-original-title", "null");
         item.addEventListener("click", (event) => {
-            if (document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`).className.includes("cs-menu-bar-item-active")) {
+            if (document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`)
+                        .className.includes("cs-menu-bar-item-active")) {
                 fermerPanneauConfig();
             } else {
-                afficherPanneauConfig();
+                console.debug("afficherPanneauConfig");
+                afficherPanneauConfig(initroot);
             }
         });
         let icon = document.createElement("span");
@@ -360,7 +390,11 @@
         icon.style.backgroundSize = "50px 31px";
         icon.style.transform = "translateX(calc(calc(-30px / 4) - 1px))";
         item.appendChild(icon);
-        document.querySelector(`div[class="cs-menu-bar-footer"]`).insertBefore(item, document.querySelector(`div[data-cy="CsMenuBar-folded-footer-item-profile"]`));
+        document.querySelector(`div[class="cs-menu-bar-footer"]`)
+                .insertBefore(
+                    item,
+                    document.querySelector(`div[data-cy="CsMenuBar-folded-footer-item-profile"]`)
+                );
     }
 
     function init() {
