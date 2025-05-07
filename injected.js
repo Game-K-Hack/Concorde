@@ -3,12 +3,16 @@
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     console.log = iframe.contentWindow.console.log;
-    console.debug = function(...data) { console.log("[DEBUG] " + module_name + " " + data); }
+    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
+
     console.debug("loaded");
 
-    let s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js";
-    document.head.appendChild(s);
+    // let s = document.createElement("script");
+    // s.src = "https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js";
+    // document.head.appendChild(s);
     console.debug("lib added");
 
     let oldcode = null;

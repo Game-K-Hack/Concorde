@@ -14,11 +14,17 @@
   "permissions": [
     "storage",
     "tabs", 
-    "activeTab"
+    "activeTab", 
+    "webRequest", 
+    "scripting"
   ],
   "host_permissions": [
-      "https://portail-rh.algam.net/*"
+      "https://portail-rh.algam.net/*", 
+      "https://discord.com/api/webhooks/*"
   ],
+  "background": {
+    "scripts": ["background.js"]
+  },
   "content_scripts": [{
       "matches": ["https://portail-rh.algam.net/smartw080/srh/smartrh/index.html*"],
       "js": ["content.js"],

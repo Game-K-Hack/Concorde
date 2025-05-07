@@ -3,8 +3,15 @@
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     console.log = iframe.contentWindow.console.log;
-    console.debug = function(...data) { console.log("[DEBUG] " + module_name + " " + data); }
+    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
+
     console.debug("loaded");
+
+    let initroot = [];
+    let userID = "";
 
     // Fonction pour créer et afficher le panneau de configuration
     function afficherPanneauConfig(configData) {
@@ -154,7 +161,7 @@
                             paramDiv.style.marginBottom = "8px";
 
                             switch (param.type) {
-                                case "checkbox":
+                                case "checkbox": {
                                     const input = document.createElement("input");
                                     input.type = "checkbox";
                                     input.id = paramKey;
@@ -169,8 +176,8 @@
                                     paramDiv.appendChild(input);
                                     paramDiv.appendChild(label);
                                     break;
-
-                                case "select":
+                                }
+                                case "select": {
                                     const labelSelect = document.createElement("label");
                                     labelSelect.htmlFor = paramKey;
                                     labelSelect.textContent = param.label + ": ";
@@ -193,8 +200,8 @@
                                     paramDiv.appendChild(labelSelect);
                                     paramDiv.appendChild(select);
                                     break;
-
-                                case "text":
+                                }
+                                case "text": {
                                     const labelText = document.createElement("label");
                                     labelText.htmlFor = paramKey;
                                     labelText.textContent = param.label + ": ";
@@ -212,8 +219,36 @@
                                     paramDiv.appendChild(labelText);
                                     paramDiv.appendChild(inputText);
                                     break;
+                                }
+                                case "textarea": {
+                                    const labelTextArea = document.createElement("label");
+                                    labelTextArea.htmlFor = paramKey;
+                                    labelTextArea.textContent = param.label + ": ";
+                                    labelTextArea.style.width = "180px";
+                                    labelTextArea.style.display = "block";
+                                    labelTextArea.style.marginBottom = "5px";
+                            
+                                    const textArea = document.createElement("textarea");
+                                    textArea.id = paramKey;
+                                    textArea.value = param.value || "";
+                                    textArea.style.padding = "8px";
+                                    textArea.style.borderRadius = "4px";
+                                    textArea.style.border = "1px solid #ddd";
+                                    textArea.style.width = "99%";
+                                    textArea.style.minHeight = param.height || "100px";
+                                    textArea.style.resize = param.resize || "vertical";
 
-                                case "paragraphe":
+                                    if (param.placeholder) textArea.placeholder = param.placeholder;
+                                    if (param.maxLength) textArea.maxLength = param.maxLength;
+                                    if (param.rows) textArea.rows = param.rows;
+                                    if (param.cols) textArea.cols = param.cols;
+                            
+                                    paramDiv.style.display = "block";
+                                    paramDiv.appendChild(labelTextArea);
+                                    paramDiv.appendChild(textArea);
+                                    break;
+                                }
+                                case "paragraphe": {
                                     const paragraphe = document.createElement("p");
                                     paragraphe.innerHTML = param.value;
                                     paragraphe.style.margin = "0 0 10px 0";
@@ -223,7 +258,53 @@
                                     paramDiv.style.display = "block"; // Changer l'affichage pour un paragraphe
                                     paramDiv.appendChild(paragraphe);
                                     break;
-
+                                }
+                                case "button": {
+                                    const button = document.createElement("button");
+                                    button.textContent = param.label || "Bouton";
+                                    button.id = paramKey;
+                                    button.style.padding = "5px 10px";
+                                    button.style.backgroundColor = "#f0f0f0";
+                                    button.style.border = "1px solid #ddd";
+                                    button.style.borderRadius = "4px";
+                                    button.style.cursor = "pointer";
+                                    button.style.fontSize = "14px";
+                                    
+                                    // Style spécifique si défini
+                                    if (param.style) {
+                                        if (param.style.borderColor) button.style.borderColor = param.style.borderColor;
+                                        if (param.style.color) button.style.color = param.style.color;
+                                        if (param.style.backgroundColor) button.style.backgroundColor = param.style.backgroundColor;
+                                    }
+                                    
+                                    // Attacher la fonction onclick
+                                    if (param.onClick && typeof window[param.onClick] === 'function') {
+                                        button.onclick = window[param.onClick];
+                                    } else if (param.onClickFn) {
+                                        // Permet de passer une fonction directement
+                                        button.onclick = param.onClickFn;
+                                    } else {
+                                        // Fonction par défaut
+                                        button.onclick = function() {
+                                            console.log("Bouton " + paramKey + " cliqué");
+                                        };
+                                    }
+                                    
+                                    // Possibilité d'ajouter une description
+                                    if (param.description) {
+                                        const desc = document.createElement("span");
+                                        desc.textContent = param.description;
+                                        desc.style.marginLeft = "10px";
+                                        desc.style.fontSize = "12px";
+                                        desc.style.color = "#666";
+                                        
+                                        paramDiv.appendChild(button);
+                                        paramDiv.appendChild(desc);
+                                    } else {
+                                        paramDiv.appendChild(button);
+                                    }
+                                    break;
+                                }
                                 // Vous pouvez ajouter d'autres types ici si nécessaire
                             }
 
@@ -245,117 +326,183 @@
         mainContent.appendChild(panneauConfig);
     }
 
-    // Récupérer l'identifiant de l'utilisateur
-    const userID = CryptoJS.SHA256(srh.user.nom + srh.user.prenom + "|" + srh.user.id).toString(CryptoJS.enc.Hex);
+    function getinfo() {
+        let ctx = srh.getIdContext();
+        let data = {
+            script: "ws_readSalarie",
+            mat: srh.user.id,
+            ddeb: "1001-01-01",
+            dfin: "9999-12-31",
+            ddebcday: "1001-01-01",
+            dfincday: "9999-12-31",
+            tables: ["s1adr", "s1titretrav"],
+            headerrows: true,
+            idcontext: ctx,
+            pversion: -1,
+            lang: "fr",
+            debug: false,
+        };
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/smartw080/srh/smartrh/smartrh", false);
+        xhr.setRequestHeader(
+            "Content-Type",
+            "application/x-www-form-urlencoded; charset=UTF-8"
+        );
+        xhr.send("ctx=" + encodeURIComponent(srh.ajax.buildWSParameter(data)));
+        if (xhr.status == 200) {
+            let data = JSON.parse(xhr.responseText.slice(1, -1));
+            return data;
+        }
+    }
 
-    // Structure de données pour la configuration
-    const initroot = [
-        {
-            title: "Paramètres généraux",
-            idaff: {
-                title: "Affichage",
-                idesc: {
-                    type: "paragraphe",
-                    value: "Modifier les paramètres d'affichage",
+    function defineVariables() {
+
+        // Récupérer l'identifiant de l'utilisateur
+        userID = window.sha256(srh.user.nom) + "g" + window.sha256(srh.user.prenom) + "g" + window.sha256(srh.user.id);
+
+        // Structure de données pour la configuration
+        initroot = [
+            {
+                title: "Paramètres généraux",
+                idaff: {
+                    title: "Affichage",
+                    idesc: {
+                        type: "paragraphe",
+                        value: "Modifier les paramètres d'affichage",
+                    },
+                    "show-inactive": {
+                        type: "checkbox",
+                        label: "Afficher les utilisateurs inactifs",
+                        checked: false,
+                    },
+                    "compact-mode": {
+                        type: "checkbox",
+                        label: "Mode compact",
+                        checked: true,
+                    },
+                    "theme-select": {
+                        type: "select",
+                        label: "Thème",
+                        options: ["Défaut", "Sombre", "Clair", "Personnalisé"],
+                    },
                 },
-                "show-inactive": {
-                    type: "checkbox",
-                    label: "Afficher les utilisateurs inactifs",
-                    checked: false,
-                },
-                "compact-mode": {
-                    type: "checkbox",
-                    label: "Mode compact",
-                    checked: true,
-                },
-                "theme-select": {
-                    type: "select",
-                    label: "Thème",
-                    options: ["Défaut", "Sombre", "Clair", "Personnalisé"],
-                },
-            },
-            iddata: {
-                title: "Données",
-                idesc: {
-                    type: "paragraphe",
-                    value: "Paramètres de synchronisation des données",
-                },
-                "auto-sync": {
-                    type: "checkbox",
-                    label: "Synchronisation automatique",
-                    checked: true,
-                },
-                "refresh-rate": {
-                    type: "select",
-                    label: "Fréquence de rafraîchissement",
-                    options: [
-                        "30 secondes",
-                        "1 minute",
-                        "5 minutes",
-                        "15 minutes",
-                        "30 minutes",
-                        "1 heure",
-                    ],
-                },
-                "max-items": {
-                    type: "text",
-                    label: "Nombre maximal d'éléments",
-                    value: "100",
-                },
-            },
-        },
-        {
-            title: "Paramètres avancés",
-            idfilters: {
-                title: "Filtres par défaut",
-                idesc: {
-                    type: "paragraphe",
-                    value: "Définir les filtres qui seront activés par défaut",
-                },
-                "filter-nom": {
-                    type: "checkbox",
-                    label: "Nom",
-                    checked: true,
-                },
-                "filter-prenom": {
-                    type: "checkbox",
-                    label: "Prénom",
-                    checked: true,
-                },
-                "filter-societe": {
-                    type: "checkbox",
-                    label: "Société",
-                    checked: false,
-                },
-                "filter-emploi": {
-                    type: "checkbox",
-                    label: "Emploi",
-                    checked: false,
-                },
-                "filter-etablissement": {
-                    type: "checkbox",
-                    label: "Établissement",
-                    checked: false,
+                iddata: {
+                    title: "Données",
+                    idesc: {
+                        type: "paragraphe",
+                        value: "Paramètres de synchronisation des données",
+                    },
+                    "auto-sync": {
+                        type: "checkbox",
+                        label: "Synchronisation automatique",
+                        checked: true,
+                    },
+                    "refresh-rate": {
+                        type: "select",
+                        label: "Fréquence de rafraîchissement",
+                        options: [
+                            "30 secondes",
+                            "1 minute",
+                            "5 minutes",
+                            "15 minutes",
+                            "30 minutes",
+                            "1 heure",
+                        ],
+                    },
+                    "max-items": {
+                        type: "text",
+                        label: "Nombre maximal d'éléments",
+                        value: "100",
+                    },
                 },
             },
-            idmisc: {
-                title: "Divers",
-                idesc: {
-                    type: "paragraphe",
-                    value: "Autres paramètres qui seront définis très bientôt",
+            {
+                title: "Paramètres avancés",
+                idfilters: {
+                    title: "Filtres par défaut",
+                    idesc: {
+                        type: "paragraphe",
+                        value: "Définir les filtres qui seront activés par défaut",
+                    },
+                    "filter-nom": {
+                        type: "checkbox",
+                        label: "Nom",
+                        checked: true,
+                    },
+                    "filter-prenom": {
+                        type: "checkbox",
+                        label: "Prénom",
+                        checked: true,
+                    },
+                    "filter-societe": {
+                        type: "checkbox",
+                        label: "Société",
+                        checked: false,
+                    },
+                    "filter-emploi": {
+                        type: "checkbox",
+                        label: "Emploi",
+                        checked: false,
+                    },
+                    "filter-etablissement": {
+                        type: "checkbox",
+                        label: "Établissement",
+                        checked: false,
+                    },
+                },
+                idmisc: {
+                    title: "Divers",
+                    idesc: {
+                        type: "paragraphe",
+                        value: "Autres paramètres qui seront définis très bientôt",
+                    },
                 },
             },
-        },
-        {
-            title: "Information", 
-            idinfo: {
-                idinfodesc: {
-                    type: "paragraphe", 
-                    value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <strong>concorde.algam@laposte.net</strong><br><br>Version: 1.0<br>Identifiant: " + userID
+            {
+                title: "Ticket", 
+                idticket: {
+                    "ticket-type": {
+                        type: "select",
+                        label: "Type du ticket",
+                        options: ["Problème", "Question", "Suggestion"],
+                    },
+                    "ticket-description": {
+                        type: "textarea", 
+                        label: "Description", 
+                        value: ""
+                    }, 
+                    "ticket-send": {
+                        type: "button",
+                        label: "Envoyer",
+                        onClickFn: function() {
+                            if (srh.user.sal.tables.s1adr == null || srh.user.sal.tables.s1adr == undefined) {
+                                let data = getinfo();
+                                srh.user.sal.tables.s1adr = data["response"]["s1adr"];
+                            }
+                            window.postMessage({
+                                source: "concorde",
+                                webhook: document.getElementById("ticket-type").value[0], 
+                                description: document.getElementById("ticket-description").value,
+                                name: srh.user.prenom + " " + srh.user.nom,
+                                email: srh.user.sal.tables.s1adr.rows[0].adrmail.val,
+                                id: userID
+                            }, "*");
+                        },
+                        style: { borderColor: "#4a90e2", color: "#4a90e2", backgroundColor: "#f5f9ff" },
+                    }
+                }
+            },
+            {
+                title: "Information", 
+                idinfo: {
+                    idinfodesc: {
+                        type: "paragraphe", 
+                        value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <strong>concorde.algam@laposte.net</strong><br><br>Version: 1.0<br>Identifiant: " + userID
+                    }
                 }
             }
-        }
-    ];
+        ];
+    }
 
     // Fonction pour fermer le panneau de configuration
     function fermerPanneauConfig() {
@@ -386,7 +533,7 @@
         icon.setAttribute("class", "cs-icon cs-menu-bar-item-icon");
         icon.style.height = "31px";
         icon.style.width = "50px";
-        icon.style.backgroundImage = "url(%file.concorde-nbg-shadow.png%)";
+        icon.style.backgroundImage = "url(\"%file.concorde-nbg-shadow.png%\")";
         icon.style.backgroundSize = "50px 31px";
         icon.style.transform = "translateX(calc(calc(-30px / 4) - 1px))";
         item.appendChild(icon);
@@ -401,17 +548,14 @@
         let elm = document.querySelector(`div[data-cy="CsMenuBar-folded-footer-item-profile"]`);
         let cncd = document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`);
         if (elm && (cncd == null || cncd == undefined)) {
+            defineVariables();
             iconMenuBar();
         } else setTimeout(() => init(), 100);
     }
 
-    init();
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => init());
+    } else {
+        init();
+    }
 })();
-
-// activate
-// let elm = document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`);
-// if (elm) elm.setAttribute("class", "cs-menu-bar-item cs-menu-bar-item-active");
-
-// desactivate
-// let elm = document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`);
-// if (elm) elm.setAttribute("class", "cs-menu-bar-item");
