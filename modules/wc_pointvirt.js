@@ -46,6 +46,8 @@
         // TODO: il manque les congés qui ne fonctionne pas
     };
 
+    let currentWeekOffset = 0; // 0 = semaine actuelle, -1 = semaine précédente, +1 = semaine suivante
+
     // Fonction pour initialiser le calendrier
     function initCalendar() {
         // Mettre à jour les variables CSS
@@ -122,15 +124,8 @@
             eventsElement.className = "events";
             eventsElement.id = `events-${day.name.toLowerCase()}`;
 
-            // Conteneur pour l'overlay de congé (créé mais caché par défaut)
-            const congeOverlay = document.createElement("div");
-            congeOverlay.className = "conge-overlay";
-            congeOverlay.innerHTML = `<div class="conge-text">Congé</div>`;
-            congeOverlay.style.display = "none";
-
             dayElement.appendChild(dateElement);
             dayElement.appendChild(eventsElement);
-            dayElement.appendChild(congeOverlay);
             daysContainer.appendChild(dayElement);
         });
     }
@@ -154,22 +149,20 @@
         const dayElement = document.getElementById(`day-${jourNormalise}`);
         
         if (dayElement) {
-            const congeOverlay = dayElement.querySelector('.conge-overlay');
-            if (congeOverlay) {
-                congeOverlay.style.display = "block";
-                
-                // Mettre à jour le libellé si nécessaire
-                const congeText = congeOverlay.querySelector('.conge-text');
-                if (congeText && libelle) {
-                    congeText.textContent = libelle;
-                }
-            }
-            
+            // Conteneur pour l'overlay de congé
+            const congeOverlay = document.createElement("div");
+            congeOverlay.className = "conge-text";
+            congeOverlay.textContent = libelle;
+
             // Désactiver les événements pour cette journée
             const eventsElement = document.getElementById(`events-${jourNormalise}`);
             if (eventsElement) {
                 eventsElement.style.pointerEvents = "none";
                 eventsElement.style.opacity = "0.6";
+                eventsElement.style.background = "repeating-linear-gradient(45deg, var(--congeColor), var(--congeColor) 10px, rgba(255, 235, 230, 0.7) 10px, rgba(255, 235, 230, 0.7) 20px)";
+                if (!document.querySelector(`div[id="events-${jourNormalise}"] div[class="conge-overlay"]`)) {
+                    eventsElement.appendChild(congeOverlay);
+                }
             }
         }
     }
@@ -312,6 +305,26 @@
         module.id = "calendar-module";
         elm.appendChild(module);
 
+        // ===== NOUVEAU : Ajouter la barre de navigation =====
+        let navigationBar = document.createElement("div");
+        navigationBar.className = "week-navigation";
+        navigationBar.innerHTML = `
+            <button id="prev-week" class="nav-button">
+                <span class="arrow">◀</span>
+                <span class="text">Semaine précédente</span>
+            </button>
+            <div id="current-week-info" class="week-info">
+                <span class="week-text">Semaine du</span>
+                <span class="week-dates" id="week-dates-display"></span>
+            </div>
+            <button id="next-week" class="nav-button">
+                <span class="text">Semaine suivante</span>
+                <span class="arrow">▶</span>
+            </button>
+        `;
+        module.appendChild(navigationBar);
+        // ===== FIN NOUVEAU =====
+
         let c = document.createElement("div");
         c.className = "calendar";
         module.appendChild(c);
@@ -344,6 +357,104 @@
             .event {transition: all 0.3s ease;}
             .event:hover {transform: scale(1.02);box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);z-index: 10;}
             .time-marker {height: var(--timeHeight);display: flex;align-items: center;}
+            
+            /* ===== NOUVEAUX STYLES POUR LA NAVIGATION ===== */
+            .week-navigation {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 1rem 2rem;
+                padding: 1rem;
+                background: #f8f9fa;
+                border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .nav-button {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                background: #007bff;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+            }
+            
+            .nav-button:hover {
+                background: #0056b3;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,123,255,0.4);
+            }
+            
+            .nav-button:active {
+                transform: translateY(0);
+                box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+            }
+            
+            .nav-button .arrow {
+                font-size: 1.2rem;
+                font-weight: bold;
+            }
+            
+            .week-info {
+                text-align: center;
+                flex: 1;
+                margin: 0 2rem;
+            }
+            
+            .week-text {
+                display: block;
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: #495057;
+                margin-bottom: 0.5rem;
+            }
+            
+            .week-dates {
+                display: block;
+                font-size: 1.3rem;
+                font-weight: bold;
+                color: #007bff;
+            }
+            
+            /* Responsive design pour mobile */
+            @media (max-width: 768px) {
+                .week-navigation {
+                    margin: 0.5rem;
+                    padding: 0.75rem;
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+                
+                .nav-button .text {
+                    display: none;
+                }
+                
+                .nav-button {
+                    padding: 0.75rem;
+                    min-width: 50px;
+                }
+                
+                .week-info {
+                    margin: 0;
+                    order: -1;
+                }
+                
+                .nav-buttons-container {
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+                    max-width: 200px;
+                }
+            }
+            /* ===== FIN NOUVEAUX STYLES ===== */
+            
             /* Style pour l'icône de télétravail */
             .teletravail-icon {
                 display: none;
@@ -361,7 +472,6 @@
             }
             /* Style pour les jours de congé */
             .conge-overlay {
-                display: none;
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -369,13 +479,6 @@
                 bottom: 0;
                 width: 100%;
                 height: 100%;
-                background: repeating-linear-gradient(
-                    45deg,
-                    var(--congeColor),
-                    var(--congeColor) 10px,
-                    rgba(255, 235, 230, 0.7) 10px,
-                    rgba(255, 235, 230, 0.7) 20px
-                );
                 z-index: 5;
                 border-radius: 5px;
             }
@@ -449,24 +552,313 @@
         timelinebox.style.backgroundColor = "unset";
         timelinebox.style.boxShadow = "unset";
 
+        setupNavigationEvents();
+        updateWeekDisplay();
+
         iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) HTML loaded");
     }
 
+    function setupNavigationEvents() {
+        const prevButton = document.getElementById('prev-week');
+        const nextButton = document.getElementById('next-week');
+        
+        prevButton.addEventListener('click', () => {
+            currentWeekOffset--;
+            updateWeekDisplay();
+            refreshCalendarData();
+        });
+        
+        nextButton.addEventListener('click', () => {
+            currentWeekOffset++;
+            updateWeekDisplay();
+            refreshCalendarData();
+        });
+    }
+
+    function refreshCalendarData() {
+        // Vider le calendrier existant
+        const daysContainer = document.getElementById("days");
+        if (daysContainer) {
+            daysContainer.innerHTML = "";
+        }
+        
+        // Réinitialiser la configuration des jours
+        config.days = [
+            { name: "lundi", shortName: "Lun", date: "" },
+            { name: "mardi", shortName: "Mar", date: "" },
+            { name: "mercredi", shortName: "Mer", date: "" },
+            { name: "jeudi", shortName: "Jeu", date: "" },
+            { name: "vendredi", shortName: "Ven", date: "" },
+        ];
+        config.numDays = 5;
+        
+        // Réinitialiser le calendrier avec les nouvelles dates
+        initCalendar();
+        
+        // CORRECTION : Appeler directement la logique de chargement des données
+        loadCalendarData();
+    }
+
+    function loadCalendarData() {
+        iframe.contentWindow.console.log("[DEBUG] Chargement des données pour offset: " + currentWeekOffset);
+        
+        // Récupérer les données
+        let data = getData();
+        iframe.contentWindow.console.log("[DEBUG] Data: " + JSON.stringify(data));
+        
+        if (data && data.response && data.response.popu) {
+            // Mapper les jours de la semaine en français
+            const joursSemaine = {
+                0: "dimanche",
+                1: "lundi",
+                2: "mardi",
+                3: "mercredi",
+                4: "jeudi",
+                5: "vendredi",
+                6: "samedi"
+            };
+            
+            // Vérifier s'il y a des pointages le week-end
+            let hasWeekendEntries = false;
+            
+            // Créer une carte pour stocker les pointages par jour
+            const pointagesParJour = {};
+            
+            // Calculer la date actuelle pour la semaine sélectionnée
+            const today = new Date();
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + (currentWeekOffset * 7));
+            const jourActuel = targetDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
+            
+            let pointagesData = [];
+            let absencesData = [];
+            let teletravailData = [];
+            
+            // Récupérer les données de pointage
+            if (data.response.popu[Object.keys(data.response.popu)[0]]) {
+                const respData = data.response.popu[Object.keys(data.response.popu)[0]][1];
+                
+                // Récupérer les pointages
+                if (respData.cpointagereel && respData.cpointagereel.rows) {
+                    pointagesData = respData.cpointagereel.rows;
+                    iframe.contentWindow.console.log("[DEBUG] Nombre de pointages trouvés: " + pointagesData.length);
+                }
+                
+                // Récupérer les absences (congés)
+                if (respData.cabsenceuser && respData.cabsenceuser.rows) {
+                    absencesData = respData.cabsenceuser.rows;
+                    iframe.contentWindow.console.log("[DEBUG] Nombre d'absences trouvées: " + absencesData.length);
+                }
+                
+                // Récupérer le télétravail
+                if (respData.cteletravail && respData.cteletravail.rows) {
+                    teletravailData = respData.cteletravail.rows;
+                    iframe.contentWindow.console.log("[DEBUG] Nombre de télétravails trouvés: " + teletravailData.length);
+                }
+                
+                // Détecter les oublis de pointage
+                const oublis = detectOubliPointage(pointagesData);
+                
+                // Afficher une alerte si des oublis sont détectés (seulement pour la semaine actuelle)
+                if (oublis.length > 0 && currentWeekOffset === 0) {
+                    // ... (code d'affichage des notifications d'oubli)
+                }
+                
+                // Grouper les pointages par jour
+                pointagesData.forEach(pointage => {
+                    const datePointage = pointage.datecorr.val;
+                    const heurePointage = pointage.timecorr.val;
+                    const dateObj = new Date(datePointage + "T" + heurePointage);
+                    const jourSemaine = joursSemaine[dateObj.getDay()];
+                    
+                    // Vérifier si c'est un jour de week-end
+                    if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+                        hasWeekendEntries = true;
+                    }
+                    
+                    // Initialiser le tableau pour ce jour s'il n'existe pas encore
+                    if (!pointagesParJour[jourSemaine]) {
+                        pointagesParJour[jourSemaine] = [];
+                    }
+                    
+                    // Ajouter ce pointage au tableau du jour
+                    pointagesParJour[jourSemaine].push({
+                        date: datePointage,
+                        heure: heurePointage.substring(0, 5).replace(':', 'h'),  // Format 08:46 -> 08h46
+                        isToday: datePointage === jourActuel
+                    });
+                });
+                
+                // Si des pointages ont été effectués le week-end, activer samedi et dimanche
+                if (hasWeekendEntries) {
+                    config.days.push(
+                        { name: "samedi", shortName: "Sam", date: "" },
+                        { name: "dimanche", shortName: "Dim", date: "" }
+                    );
+                    config.numDays = 7;
+                    generateDays();
+                }
+
+                // Traiter les jours de télétravail
+                if (teletravailData && teletravailData.length > 0) {
+                    teletravailData.forEach(tele => {
+                        const dateTele = tele.date.val;
+                        if (estDansPlageActuelle(dateTele)) {
+                            const jourSemaine = getJourSemaine(dateTele);
+                            markAsTeletravail(jourSemaine);
+                        }
+                    });
+                }
+
+                // Traiter les congés et absences
+                if (absencesData && absencesData.length > 0) {
+                    absencesData.forEach(absence => {
+                        const dateDebut = absence.datedeb.val;
+                        const dateFin = absence.datefin.val;
+                        const libelle = absence.libelle ? absence.libelle.val : "Congé";
+                        
+                        // Créer une boucle pour couvrir toute la période d'absence
+                        const debut = new Date(dateDebut);
+                        const fin = new Date(dateFin);
+                        
+                        for (let d = new Date(debut); d <= fin; d.setDate(d.getDate() + 1)) {
+                            const dateStr = d.toISOString().split('T')[0];
+                            if (estDansPlageActuelle(dateStr)) {
+                                const jourSemaine = getJourSemaine(dateStr);
+                                markAsConge(jourSemaine, libelle);
+                            }
+                        }
+                    });
+                }
+
+                // Traiter les jours fériés
+                for (const jour of config.days) {
+                    // Récupérer la date complète au format YYYY-MM-DD
+                    const today = new Date();
+                    const targetDate = new Date(today);
+                    targetDate.setDate(today.getDate() + (currentWeekOffset * 7));
+                    const semaine = getStartAndEndOfWeek(targetDate);
+                    const jourDate = new Date(semaine.monday);
+                    jourDate.setDate(jourDate.getDate() + config.days.indexOf(jour));
+                    
+                    const moisJour = (jourDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
+                                    jourDate.getDate().toString().padStart(2, '0');
+                    
+                    // Vérifier si c'est un jour férié
+                    const ferie = joursFeries[moisJour];
+                    if (ferie) {
+                        markAsFerie(jour.name, ferie["name"], ferie["image"]);
+                    }
+                }
+
+                // Créer des événements à partir des pointages
+                for (const jour in pointagesParJour) {
+                    const pointages = pointagesParJour[jour].sort((a, b) => a.heure.localeCompare(b.heure));
+
+                    // Parcourir tous les pointages et créer des paires
+                    for (let i = 0; i < pointages.length; i++) {
+                        const heureDebut = pointages[i].heure;
+                        let heureFin = null;
+                        
+                        // Gérer différents cas
+                        if (i % 2 === 0) { // Pointage d'entrée (position paire dans la liste)
+                            // Si c'est le dernier pointage du jour actuel, laisser heureFin à null
+                            if (pointages[i].isToday && i === pointages.length - 1 && currentWeekOffset === 0) {
+                                heureFin = null; // Pointage en cours (seulement pour la semaine actuelle)
+                            }
+                            // S'il y a un pointage suivant, c'est l'heure de fin
+                            else if (i + 1 < pointages.length) {
+                                heureFin = pointages[i + 1].heure;
+                            }
+                            // S'il n'y a pas de pointage suivant et ce n'est pas aujourd'hui
+                            else if (!pointages[i].isToday || currentWeekOffset !== 0) {
+                                heureFin = (parseInt(heureDebut.split('h')[0]) + 8) + "h00"; // Fin estimée à +8h
+                                
+                                // Ajouter l'événement avec couleur spéciale pour marquer l'oubli
+                                addEventOnCalandar(
+                                    "Travail (Sortie oubliée)",
+                                    heureDebut, 
+                                    heureFin,
+                                    jour,
+                                    "jaune"
+                                );
+                                continue;
+                            }
+                        } else {
+                            if (i === 0) {
+                                const heureEstimeeDebut = (parseInt(heureDebut.split('h')[0]) - 8) + "h00";
+                                
+                                addEventOnCalandar(
+                                    "Travail (Entrée oubliée)",
+                                    heureEstimeeDebut, 
+                                    heureDebut,
+                                    jour,
+                                    "rouge"
+                                );
+                                continue;
+                            }
+                        }
+                        
+                        // Si on est sur un pointage d'entrée
+                        if (i % 2 === 0) {
+                            addEventOnCalandar(
+                                "Travail",
+                                heureDebut, 
+                                heureFin,
+                                jour,
+                                "bleu"
+                            );
+                        }
+                    }
+                }
+            }
+        } else {
+            iframe.contentWindow.console.log("[DEBUG] Aucune donnée disponible pour cette semaine");
+        }
+    }
+
+    function updateWeekDisplay() {
+        const today = new Date();
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + (currentWeekOffset * 7));
+        
+        const week = getStartAndEndOfWeek(targetDate);
+        
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        const startDateStr = week.monday.toLocaleDateString('fr-FR', options);
+        const endDateStr = week.sunday.toLocaleDateString('fr-FR', options);
+        
+        const weekDatesDisplay = document.getElementById('week-dates-display');
+        if (weekDatesDisplay) {
+            weekDatesDisplay.textContent = `${startDateStr} - ${endDateStr}`;
+        }
+    }
+
     function getStartAndEndOfWeek(date = new Date()) {
-        const day = date.getDay(); // 0 (dimanche) à 6 (samedi)
+        // Si pas de date fournie, utiliser la date actuelle avec l'offset
+        const targetDate = date ? new Date(date) : new Date();
+        if (!date) {
+            targetDate.setDate(targetDate.getDate() + (currentWeekOffset * 7));
+        }
+        
+        const day = targetDate.getDay(); // 0 (dimanche) à 6 (samedi)
         const diffToMonday = (day === 0 ? -6 : 1 - day); // Si dimanche (0), on recule de 6 jours
-        const monday = new Date(date);
-        monday.setDate(date.getDate() + diffToMonday);
+        const monday = new Date(targetDate);
+        monday.setDate(targetDate.getDate() + diffToMonday);
         const sunday = new Date(monday);
         sunday.setDate(monday.getDate() + 6);
         return { monday: monday, sunday: sunday };
     }
 
     function getWeekDaysDict(date = new Date()) {
-        const day = date.getDay();
+        // Appliquer l'offset de semaine
+        const targetDate = new Date(date);
+        targetDate.setDate(date.getDate() + (currentWeekOffset * 7));
+        
+        const day = targetDate.getDay();
         const diffToMonday = (day === 0 ? -6 : 1 - day);
-        const monday = new Date(date);
-        monday.setDate(date.getDate() + diffToMonday);
+        const monday = new Date(targetDate);
+        monday.setDate(targetDate.getDate() + diffToMonday);
 
         const daysOfWeek = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
         const result = {};
@@ -481,13 +873,46 @@
         return result;
     }
 
+    function refreshCalendarData() {
+        // Vider le calendrier existant
+        const daysContainer = document.getElementById("days");
+        if (daysContainer) {
+            daysContainer.innerHTML = "";
+        }
+        
+        // Réinitialiser la configuration des jours
+        config.days = [
+            { name: "lundi", shortName: "Lun", date: "" },
+            { name: "mardi", shortName: "Mar", date: "" },
+            { name: "mercredi", shortName: "Mer", date: "" },
+            { name: "jeudi", shortName: "Jeu", date: "" },
+            { name: "vendredi", shortName: "Ven", date: "" },
+        ];
+        config.numDays = 5;
+        
+        // Réinitialiser le calendrier avec les nouvelles dates
+        initCalendar();
+        
+        // Déclencher le rechargement des données
+        window.postMessage({ 
+            get_storage: ["pref_startHour", "pref_endHour", "pref_hourStep"], 
+            id: "changeHours",
+            forceRefresh: true 
+        }, "*");
+    }
+
     function getData() {
         function formatDate(d) { // Format AAAA-MM-JJ
             return d.toISOString().split('T')[0];
         }
         
         function getsrhdata() {
-            const week = getStartAndEndOfWeek();
+            // CORRECTION : Calculer la semaine avec l'offset actuel
+            const today = new Date();
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + (currentWeekOffset * 7));
+            const week = getStartAndEndOfWeek(targetDate);
+            
             let ctx = srh.getIdContext();
             let data = {
                 "script":"ws_gtareadtables",
@@ -504,6 +929,10 @@
                 "lang":"fr",
                 "debug":false
             }
+            
+            // DEBUG : Afficher les dates utilisées
+            iframe.contentWindow.console.log("[DEBUG] Récupération données pour la semaine du " + formatDate(week.monday) + " au " + formatDate(week.sunday));
+            
             return encodeURIComponent(srh.ajax.buildWSParameter(data));
         }
 
@@ -567,292 +996,29 @@
 
     // Fonction pour vérifier si une date est dans la plage de dates actuelle
     function estDansPlageActuelle(dateStr) {
-        const week = getStartAndEndOfWeek();
+        const today = new Date();
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + (currentWeekOffset * 7));
+        const week = getStartAndEndOfWeek(targetDate);
+        
         const dateObj = new Date(dateStr);
         return dateObj >= week.monday && dateObj <= week.sunday;
     }
 
     // Modification de la fonction initEvent pour inclure la détection d'oubli
     function initEvent() {
-        // Changer les heures pour avoir une plage plus large
         window.addEventListener("message", (event) => {
             if (event.source !== window || !event.data?.source == "concorde") return;
-            if (event.data.data && event.data.id == "changeHours") { 
-                // iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(event.data.data));
+            if (event.data.data && event.data.id == "changeHours") {                 
+                iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(event.data.data));
                 changeHours(...Object.values(event.data.data));
 
-                // récupérer le calendrier
-                let data = getData();
-                // iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(data));
-                
-                // Vérifier si nous avons des données
-                if (data && data.response && data.response.popu) {
-                    // Mapper les jours de la semaine en français
-                    const joursSemaine = {
-                        0: "dimanche",
-                        1: "lundi",
-                        2: "mardi",
-                        3: "mercredi",
-                        4: "jeudi",
-                        5: "vendredi",
-                        6: "samedi"
-                    };
-                    
-                    // Vérifier s'il y a des pointages le week-end
-                    let hasWeekendEntries = false;
-                    
-                    // Créer une carte pour stocker les pointages par jour
-                    const pointagesParJour = {};
-                    
-                    // Date actuelle pour déterminer le jour en cours
-                    const dateActuelle = new Date();
-                    const jourActuel = dateActuelle.toISOString().split('T')[0]; // Format YYYY-MM-DD
-                    
-                    let pointagesData = [];
-                    let absencesData = [];
-                    let teletravailData = [];
-                    
-                    // Récupérer les données de pointage
-                    if (data.response.popu[Object.keys(data.response.popu)[0]]) {
-                        const respData = data.response.popu[Object.keys(data.response.popu)[0]][1];
-                        
-                        // Récupérer les pointages
-                        if (respData.cpointagereel && respData.cpointagereel.rows) {
-                            pointagesData = respData.cpointagereel.rows;
-                        }
-                        
-                        // Récupérer les absences (congés)
-                        if (respData.cabsenceuser && respData.cabsenceuser.rows) {
-                            absencesData = respData.cabsenceuser.rows;
-                        }
-                        
-                        // Récupérer le télétravail
-                        if (respData.cteletravail && respData.cteletravail.rows) {
-                            teletravailData = respData.cteletravail.rows;
-                        }
-                        
-                        // Détecter les oublis de pointage
-                        const oublis = detectOubliPointage(pointagesData);
-                        
-                        // Afficher une alerte si des oublis sont détectés
-                        if (oublis.length > 0) {
-                            const notificationElement = document.createElement("div");
-                            notificationElement.className = "notification-oubli";
-                            notificationElement.style.cssText = `
-                                position: fixed;
-                                top: 20px;
-                                right: 20px;
-                                background-color: #ffeeee;
-                                border: 1px solid #ffaaaa;
-                                border-radius: 5px;
-                                padding: 10px 15px;
-                                box-shadow: 0 2px 5px rgba(0,0,
-                                z-index: 1000;
-                                max-width: 300px;
-                            `;
-                            
-                            let oublisHTML = '<h3 style="margin-top:0;color:#cc0000;">⚠️ Oublis de pointage détectés</h3><ul style="padding-left:20px;margin-bottom:5px;">';
-                            
-                            oublis.forEach(oubli => {
-                                // Formater la date en français
-                                const dateObj = new Date(oubli.date);
-                                const options = { weekday: 'long', day: 'numeric', month: 'long' };
-                                const dateFormatee = dateObj.toLocaleDateString('fr-FR', options);
-                                
-                                oublisHTML += `<li>${dateFormatee} : nombre impair de pointages (${oubli.pointages.length})</li>`;
-                            });
-                            
-                            oublisHTML += '</ul>';
-                            oublisHTML += '<p style="margin-top:10px;font-size:0.9em;">Veuillez contacter votre responsable pour régulariser.</p>';
-                            oublisHTML += '<button id="close-notification" style="float:right;padding:5px 10px;background:#f0f0f0;border:1px solid #ccc;border-radius:3px;cursor:pointer;">Fermer</button>';
-                            oublisHTML += '<div style="clear:both;"></div>';
-                            
-                            notificationElement.innerHTML = oublisHTML;
-                            document.body.appendChild(notificationElement);
-                            
-                            // Ajouter un écouteur pour fermer la notification
-                            document.getElementById('close-notification').addEventListener('click', function() {
-                                notificationElement.style.display = 'none';
-                            });
-                        }
-                        
-                        // Grouper les pointages par jour
-                        pointagesData.forEach(pointage => {
-                            const datePointage = pointage.datecorr.val;
-                            const heurePointage = pointage.timecorr.val;
-                            const dateObj = new Date(datePointage + "T" + heurePointage);
-                            const jourSemaine = joursSemaine[dateObj.getDay()];
-                            
-                            // Vérifier si c'est un jour de week-end
-                            if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
-                                hasWeekendEntries = true;
-                            }
-                            
-                            // Initialiser le tableau pour ce jour s'il n'existe pas encore
-                            if (!pointagesParJour[jourSemaine]) {
-                                pointagesParJour[jourSemaine] = [];
-                            }
-                            
-                            // Ajouter ce pointage au tableau du jour
-                            pointagesParJour[jourSemaine].push({
-                                date: datePointage,
-                                heure: heurePointage.substring(0, 5).replace(':', 'h'),  // Format 08:46 -> 08h46
-                                isToday: datePointage === jourActuel
-                            });
-                        });
-                        
-                        // Si des pointages ont été effectués le week-end, activer samedi et dimanche
-                        if (hasWeekendEntries) {
-                            // Décommenter les jours du week-end dans la configuration
-                            config.days.push(
-                                { name: "samedi", shortName: "Sam", date: "" },
-                                { name: "dimanche", shortName: "Dim", date: "" }
-                            );
-                            // Mettre à jour le nombre de jours
-                            config.numDays = 7;
-                            // Régénérer les jours pour afficher le week-end
-                            generateDays();
-                        }
-
-                        // Traiter les jours de télétravail
-                        if (teletravailData && teletravailData.length > 0) {
-                            teletravailData.forEach(tele => {
-                                const dateTele = tele.date.val;
-                                if (estDansPlageActuelle(dateTele)) {
-                                    const jourSemaine = getJourSemaine(dateTele);
-                                    markAsTeletravail(jourSemaine);
-                                }
-                            });
-                        }
-
-                        // Traiter les congés et absences
-                        if (absencesData && absencesData.length > 0) {
-                            absencesData.forEach(absence => {
-                                const dateDebut = absence.datedeb.val;
-                                const dateFin = absence.datefin.val;
-                                const libelle = absence.libelle ? absence.libelle.val : "Congé";
-                                
-                                // Créer une boucle pour couvrir toute la période d'absence
-                                const debut = new Date(dateDebut);
-                                const fin = new Date(dateFin);
-                                
-                                for (let d = new Date(debut); d <= fin; d.setDate(d.getDate() + 1)) {
-                                    const dateStr = d.toISOString().split('T')[0];
-                                    if (estDansPlageActuelle(dateStr)) {
-                                        const jourSemaine = getJourSemaine(dateStr);
-                                        markAsConge(jourSemaine, libelle);
-                                    }
-                                }
-                            });
-                        }
-
-                        // Traiter les jours fériés
-                        for (const jour of config.days) {
-                            // Récupérer la date complète au format YYYY-MM-DD
-                            const anneeEnCours = new Date().getFullYear();
-                            const semaine = getStartAndEndOfWeek();
-                            const jourDate = new Date(semaine.monday);
-                            jourDate.setDate(jourDate.getDate() + config.days.indexOf(jour));
-                            
-                            const moisJour = (jourDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
-                                            jourDate.getDate().toString().padStart(2, '0');
-                            
-                            // Vérifier si c'est un jour férié
-                            const ferie = joursFeries[moisJour];
-                            if (ferie) {
-                                markAsFerie(jour.name, ferie["name"], ferie["image"]);
-                            }
-                        }
-
-                        // Créer des événements à partir des pointages
-                        for (const jour in pointagesParJour) {
-                            const pointages = pointagesParJour[jour].sort((a, b) => a.heure.localeCompare(b.heure));
-
-                            // Parcourir tous les pointages et créer des paires
-                            for (let i = 0; i < pointages.length; i++) {
-                                const heureDebut = pointages[i].heure;
-                                let heureFin = null;
-                                
-                                // Gérer différents cas
-                                if (i % 2 === 0) { // Pointage d'entrée (position paire dans la liste)
-                                    // Si c'est le dernier pointage du jour actuel, laisser heureFin à null
-                                    if (pointages[i].isToday && i === pointages.length - 1) {
-                                        heureFin = null; // Pointage en cours
-                                    }
-                                    // S'il y a un pointage suivant, c'est l'heure de fin
-                                    else if (i + 1 < pointages.length) {
-                                        heureFin = pointages[i + 1].heure;
-                                    }
-                                    // S'il n'y a pas de pointage suivant et ce n'est pas aujourd'hui
-                                    // C'est un oubli de pointage de sortie
-                                    else if (!pointages[i].isToday) {
-                                        heureFin = (parseInt(heureDebut.split('h')[0]) + 8) + "h00"; // Fin estimée à +8h
-                                        
-                                        // Ajouter l'événement avec couleur spéciale pour marquer l'oubli
-                                        addEventOnCalandar(
-                                            "Travail (Sortie oubliée)",
-                                            heureDebut, 
-                                            heureFin,
-                                            jour,
-                                            "jaune" // Couleur pour signaler l'anomalie
-                                        );
-                                        continue; // Passer à l'itération suivante
-                                    }
-                                } else { // Pointage de sortie sans entrée précédente (position impaire mais premier élément)
-                                    if (i === 0) {
-                                        // C'est un oubli de pointage d'entrée
-                                        const heureEstimeeDebut = (parseInt(heureDebut.split('h')[0]) - 8) + "h00"; // Début estimé à -8h
-                                        
-                                        // Ajouter l'événement avec couleur spéciale pour marquer l'oubli
-                                        addEventOnCalandar(
-                                            "Travail (Entrée oubliée)",
-                                            heureEstimeeDebut, 
-                                            heureDebut,
-                                            jour,
-                                            "rouge" // Couleur pour signaler l'anomalie
-                                        );
-                                        continue; // Passer à l'itération suivante
-                                    }
-                                }
-                                
-                                // Si on est sur un pointage d'entrée
-                                if (i % 2 === 0) {
-                                    // Ajouter l'événement au calendrier
-                                    addEventOnCalandar(
-                                        "Travail",  // Titre standard pour tous les pointages
-                                        heureDebut, 
-                                        heureFin,
-                                        jour,
-                                        "bleu"  // Couleur standard pour tous les pointages
-                                    );
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // Si pas de données, utiliser les événements de test (facultatif)
-                    iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) No data available, using test events");
-                    addEventOnCalandar("Petit-déjeuner","7h00","8h00","lundi","jaune");
-                    addEventOnCalandar("Travail", "8h46", null, "lundi", "bleu");
-                    addEventOnCalandar("Déjeuner","12h30","13h30","lundi","rouge");
-                    addEventOnCalandar("Réunion","14h30","16h00","mardi","rouge");
-                    addEventOnCalandar("Pause café","16h15","16h45","mardi","vert");
-                    addEventOnCalandar("Cours","10h00","12h00","mercredi","vert");
-                    
-                    // Exemple de démonstration des fonctionnalités
-                    markAsTeletravail("jeudi");
-                    markAsConge("vendredi", "Congé payé");
-                    if (config.days.find(d => d.name === "lundi")) {
-                        markAsFerie("lundi", "Jour férié");
-                    }
-                }
-
-                markAsTeletravail("mercredi");
-                markAsConge("vendredi", "Congé payé");
+                // CORRECTION : Utiliser la nouvelle fonction centralisée
+                loadCalendarData();
             }
         });
+        
         window.postMessage({ get_storage: ["pref_startHour", "pref_endHour", "pref_hourStep"], id: "changeHours" }, "*");
-
         iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) Event loaded");
     }
 
