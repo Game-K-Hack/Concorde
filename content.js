@@ -30,12 +30,13 @@ function injectModule(code, path="modules") {
     fetch(browser.runtime.getURL(`${path}/${code}.js`))
         .then(response => response.text())
         .then(text => {
-            let m = text.match(/%file\.[a-zA-Z0-9._-]{1,50}%/);
-            if (m != null || m != undefined) {
-                for (let key of m) {
-                    key = key.split("%file.")[1]
+            let matches = text.matchAll(/%file\.[a-zA-Z0-9._\/-]{1,50}%/g);
+            matches = Array.from(matches);
+            if (matches && matches.length > 0) {
+                for (let match of matches) {
+                    let key = match[0].split("%file.")[1];
                     key = key.substring(0, key.length - 1);
-                    text = text.replace("%file." + key + "%", chrome.runtime.getURL("assets/" + key));
+                    text = text.replace(match[0], chrome.runtime.getURL("assets/images/" + key));
                 }
             }
             const script = document.createElement('script');

@@ -22,12 +22,28 @@
             jaune: "#fafaa3",
             bleu: "#e2f8ff",
             vert: "#d1ffe6",
+            conge: "#ffebe6",      // Couleur pour les congés
+            ferie: "#f0e6ff"       // Couleur pour les jours fériés
         },
         numDays: 5,
         numHours: 10,
         timeHeight: "60px",
         calBgColor: "#f0f0fa",
         eventBorderColor: "#dcdcf0",
+    };
+
+    // Liste des jours fériés en France (format MM-DD)
+    const joursFeries = {
+        "01-01": {"name":"Jour de l'an", "image":"%file.ferie/an.jpg%"},
+        "05-01": {"name":"Fête du travail", "image":"%file.ferie/travail.jpg%"},
+        "05-08": {"name":"Victoire 1945", "image":"%file.ferie/8mai.jpg%"},
+        "07-14": {"name":"Fête nationale", "image":"%file.ferie/fetenationale.jpg%"},
+        "08-15": {"name":"Assomption", "image":"%file.ferie/asumption.jpg%"},
+        "11-01": {"name":"Toussaint", "image":"%file.ferie/toussaint.png%"},
+        "11-11": {"name":"Armistice", "image":"%file.ferie/armistice.jpg%"},
+        "12-25": {"name":"Noël", "image":"%file.ferie/noel.jpg%"}
+        // TODO: il manque des jours férié
+        // TODO: il manque les congés qui ne fonctionne pas
     };
 
     // Fonction pour initialiser le calendrier
@@ -67,6 +83,18 @@
         }
     }
 
+    // Fonction pour vérifier si une date est un jour férié
+    function isJourFerie(dateStr) {
+        // Format de dateStr: YYYY-MM-DD
+        if (!dateStr) return false;
+        
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return false;
+        
+        const mmdd = parts[1] + '-' + parts[2];
+        return joursFeries[mmdd] || false;
+    }
+
     // Fonction pour générer les jours
     function generateDays() {
         const daysContainer = document.getElementById("days");
@@ -83,14 +111,90 @@
             <p class="date-num">${day.date}</p>
             <p class="date-day">${day.shortName}</p>`;
 
+            // Conteneur pour l'icône de télétravail (ajouté mais caché par défaut)
+            const teleIcon = document.createElement("div");
+            teleIcon.className = "teletravail-icon";
+            teleIcon.innerHTML = `<span class="icon">💻</span>`;
+            teleIcon.style.display = "none";
+            dateElement.appendChild(teleIcon);
+
             const eventsElement = document.createElement("div");
             eventsElement.className = "events";
             eventsElement.id = `events-${day.name.toLowerCase()}`;
 
+            // Conteneur pour l'overlay de congé (créé mais caché par défaut)
+            const congeOverlay = document.createElement("div");
+            congeOverlay.className = "conge-overlay";
+            congeOverlay.innerHTML = `<div class="conge-text">Congé</div>`;
+            congeOverlay.style.display = "none";
+
             dayElement.appendChild(dateElement);
             dayElement.appendChild(eventsElement);
+            dayElement.appendChild(congeOverlay);
             daysContainer.appendChild(dayElement);
         });
+    }
+
+    // Fonction pour marquer un jour comme jour de télétravail
+    function markAsTeletravail(jour) {
+        const jourNormalise = jour.toLowerCase();
+        const dayElement = document.getElementById(`day-${jourNormalise}`);
+        
+        if (dayElement) {
+            const teleIcon = dayElement.querySelector('.teletravail-icon');
+            if (teleIcon) {
+                teleIcon.style.display = "block";
+            }
+        }
+    }
+
+    // Fonction pour marquer un jour comme congé
+    function markAsConge(jour, libelle = "Congé") {
+        const jourNormalise = jour.toLowerCase();
+        const dayElement = document.getElementById(`day-${jourNormalise}`);
+        
+        if (dayElement) {
+            const congeOverlay = dayElement.querySelector('.conge-overlay');
+            if (congeOverlay) {
+                congeOverlay.style.display = "block";
+                
+                // Mettre à jour le libellé si nécessaire
+                const congeText = congeOverlay.querySelector('.conge-text');
+                if (congeText && libelle) {
+                    congeText.textContent = libelle;
+                }
+            }
+            
+            // Désactiver les événements pour cette journée
+            const eventsElement = document.getElementById(`events-${jourNormalise}`);
+            if (eventsElement) {
+                eventsElement.style.pointerEvents = "none";
+                eventsElement.style.opacity = "0.6";
+            }
+        }
+    }
+
+    // Fonction pour marquer un jour comme férié
+    function markAsFerie(jour, nomFerie, image) {
+        const jourNormalise = jour.toLowerCase();
+        const dayElement = document.getElementById(`day-${jourNormalise}`);
+
+        if (dayElement) {
+            const eventsElement = document.getElementById(`events-${jourNormalise}`);
+            if (eventsElement) {
+                eventsElement.style.pointerEvents = "none";
+                eventsElement.classList.add("ferie-background");
+                eventsElement.style.backgroundImage = `linear-gradient(rgb(240, 240, 250), rgba(240, 240, 250, 0.5)), url(${image})`;
+                let p = document.createElement("p");
+                p.textContent = nomFerie;
+                p.style.textAlign = "center";
+                p.style.width = "100%";
+                p.style.marginTop = "50%";
+                p.style.fontSize = "30px";
+                p.style.fontWeight = "bold";
+                eventsElement.append(p);
+            }
+        }
     }
 
     // Fonction pour ajouter un événement au calendrier
@@ -223,7 +327,7 @@
         c.appendChild(d);
 
         let style = document.createElement('style');
-        style.innerHTML = `:root {--numDays: ${config.numDays};--numHours: ${config.numHours};--timeHeight: ${config.timeHeight};--calBgColor: ${config.calBgColor};--eventBorderColor: ${config.eventBorderColor};--startHour: ${config.startHour};--endHour: ${config.endHour};}
+        style.innerHTML = `:root {--numDays: ${config.numDays};--numHours: ${config.numHours};--timeHeight: ${config.timeHeight};--calBgColor: ${config.calBgColor};--eventBorderColor: ${config.eventBorderColor};--startHour: ${config.startHour};--endHour: ${config.endHour};--congeColor: ${config.colors.conge};--ferieColor: ${config.colors.ferie};}
             #calendar-module,div,p {margin: 0;padding: 0;border: 0;font-size: 100%;font: inherit;vertical-align: baseline;}
             #calendar-module {line-height: 1;}
             .calendar {display: grid;gap: 10px;grid-template-columns: auto 1fr;margin: 2rem;}
@@ -234,12 +338,67 @@
             .event {border: 1px solid var(--eventBorderColor);border-radius: 5px;padding: 0.5rem;margin-left: 0.5rem;margin-right: 0.5rem;background: white;position: absolute;width: calc(100% - 1rem - 2px);box-sizing: border-box;left: 0;}
             .space,.date {height: 60px;}
             body {font-family: system-ui, sans-serif;}
-            .date {display: flex;gap: 1em;}
+            .date {display: flex;gap: 1em;position: relative;}
             .date-num {font-size: 3rem;font-weight: 600;display: inline;}
             .date-day {display: inline;font-size: 3rem;font-weight: 100;}
             .event {transition: all 0.3s ease;}
             .event:hover {transform: scale(1.02);box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);z-index: 10;}
-            .time-marker {height: var(--timeHeight);display: flex;align-items: center;}`;
+            .time-marker {height: var(--timeHeight);display: flex;align-items: center;}
+            /* Style pour l'icône de télétravail */
+            .teletravail-icon {
+                display: none;
+                position: absolute;
+                top: 70px;
+                right: 5px;
+                font-size: 1.5rem;
+                animation: pulse 2s infinite;
+                z-index: 1;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); opacity: 0.7; }
+                50% { transform: scale(1.1); opacity: 1; }
+                100% { transform: scale(1); opacity: 0.7; }
+            }
+            /* Style pour les jours de congé */
+            .conge-overlay {
+                display: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+                background: repeating-linear-gradient(
+                    45deg,
+                    var(--congeColor),
+                    var(--congeColor) 10px,
+                    rgba(255, 235, 230, 0.7) 10px,
+                    rgba(255, 235, 230, 0.7) 20px
+                );
+                z-index: 5;
+                border-radius: 5px;
+            }
+            .conge-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-45deg);
+                color: #ff6347;
+                font-size: 2.5rem;
+                font-weight: bold;
+                text-transform: uppercase;
+                white-space: nowrap;
+                pointer-events: none;
+                text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+            }
+            /* Style pour les jours fériés */
+            .ferie-background {
+                background-size: cover;
+                background-image: linear-gradient(rgb(240, 240, 250), rgba(240, 240, 250, 0.5)), url(https://voltfrance.org/img/containers/assets/images_actualites/8_mai_1945.jpg/42dfad027cf87874311499afa074e36c.jpg);
+                background-repeat: no-repeat;
+                background-position: center;
+            }`;
         document.getElementsByTagName('head')[0].appendChild(style);
 
         const timelineEl = document.getElementById('timeline');
@@ -273,6 +432,7 @@
             dateHeader.innerHTML = `
                 <div class="date-num">${dayNumber}</div>
                 <div class="date-day">${dayName}</div>
+                <div class="teletravail-icon" style="display:none;"><span class="icon">💻</span></div>
             `;
 
             // Conteneur pour les événements
@@ -344,8 +504,7 @@
                 "lang":"fr",
                 "debug":false
             }
-            data = encodeURIComponent(srh.ajax.buildWSParameter(data));
-            return data;
+            return encodeURIComponent(srh.ajax.buildWSParameter(data));
         }
 
         const xhr = new XMLHttpRequest();
@@ -390,18 +549,41 @@
         return oublis;
     }
 
+    // Fonction pour convertir une date au format YYYY-MM-DD en jour de la semaine
+    function getJourSemaine(dateStr) {
+        const joursSemaine = {
+            0: "dimanche",
+            1: "lundi",
+            2: "mardi",
+            3: "mercredi",
+            4: "jeudi",
+            5: "vendredi",
+            6: "samedi"
+        };
+        
+        const dateObj = new Date(dateStr);
+        return joursSemaine[dateObj.getDay()];
+    }
+
+    // Fonction pour vérifier si une date est dans la plage de dates actuelle
+    function estDansPlageActuelle(dateStr) {
+        const week = getStartAndEndOfWeek();
+        const dateObj = new Date(dateStr);
+        return dateObj >= week.monday && dateObj <= week.sunday;
+    }
+
     // Modification de la fonction initEvent pour inclure la détection d'oubli
     function initEvent() {
         // Changer les heures pour avoir une plage plus large
         window.addEventListener("message", (event) => {
             if (event.source !== window || !event.data?.source == "concorde") return;
             if (event.data.data && event.data.id == "changeHours") { 
-                iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(event.data.data));
+                // iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(event.data.data));
                 changeHours(...Object.values(event.data.data));
 
                 // récupérer le calendrier
                 let data = getData();
-                iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(data));
+                // iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(data));
                 
                 // Vérifier si nous avons des données
                 if (data && data.response && data.response.popu) {
@@ -427,10 +609,27 @@
                     const jourActuel = dateActuelle.toISOString().split('T')[0]; // Format YYYY-MM-DD
                     
                     let pointagesData = [];
+                    let absencesData = [];
+                    let teletravailData = [];
                     
-                    // Collecter toutes les entrées de pointage et les organiser par jour
+                    // Récupérer les données de pointage
                     if (data.response.popu[Object.keys(data.response.popu)[0]]) {
-                        pointagesData = data.response.popu[Object.keys(data.response.popu)[0]][1].cpointagereel.rows;
+                        const respData = data.response.popu[Object.keys(data.response.popu)[0]][1];
+                        
+                        // Récupérer les pointages
+                        if (respData.cpointagereel && respData.cpointagereel.rows) {
+                            pointagesData = respData.cpointagereel.rows;
+                        }
+                        
+                        // Récupérer les absences (congés)
+                        if (respData.cabsenceuser && respData.cabsenceuser.rows) {
+                            absencesData = respData.cabsenceuser.rows;
+                        }
+                        
+                        // Récupérer le télétravail
+                        if (respData.cteletravail && respData.cteletravail.rows) {
+                            teletravailData = respData.cteletravail.rows;
+                        }
                         
                         // Détecter les oublis de pointage
                         const oublis = detectOubliPointage(pointagesData);
@@ -447,7 +646,7 @@
                                 border: 1px solid #ffaaaa;
                                 border-radius: 5px;
                                 padding: 10px 15px;
-                                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                                box-shadow: 0 2px 5px rgba(0,0,
                                 z-index: 1000;
                                 max-width: 300px;
                             `;
@@ -513,6 +712,56 @@
                             config.numDays = 7;
                             // Régénérer les jours pour afficher le week-end
                             generateDays();
+                        }
+
+                        // Traiter les jours de télétravail
+                        if (teletravailData && teletravailData.length > 0) {
+                            teletravailData.forEach(tele => {
+                                const dateTele = tele.date.val;
+                                if (estDansPlageActuelle(dateTele)) {
+                                    const jourSemaine = getJourSemaine(dateTele);
+                                    markAsTeletravail(jourSemaine);
+                                }
+                            });
+                        }
+
+                        // Traiter les congés et absences
+                        if (absencesData && absencesData.length > 0) {
+                            absencesData.forEach(absence => {
+                                const dateDebut = absence.datedeb.val;
+                                const dateFin = absence.datefin.val;
+                                const libelle = absence.libelle ? absence.libelle.val : "Congé";
+                                
+                                // Créer une boucle pour couvrir toute la période d'absence
+                                const debut = new Date(dateDebut);
+                                const fin = new Date(dateFin);
+                                
+                                for (let d = new Date(debut); d <= fin; d.setDate(d.getDate() + 1)) {
+                                    const dateStr = d.toISOString().split('T')[0];
+                                    if (estDansPlageActuelle(dateStr)) {
+                                        const jourSemaine = getJourSemaine(dateStr);
+                                        markAsConge(jourSemaine, libelle);
+                                    }
+                                }
+                            });
+                        }
+
+                        // Traiter les jours fériés
+                        for (const jour of config.days) {
+                            // Récupérer la date complète au format YYYY-MM-DD
+                            const anneeEnCours = new Date().getFullYear();
+                            const semaine = getStartAndEndOfWeek();
+                            const jourDate = new Date(semaine.monday);
+                            jourDate.setDate(jourDate.getDate() + config.days.indexOf(jour));
+                            
+                            const moisJour = (jourDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
+                                            jourDate.getDate().toString().padStart(2, '0');
+                            
+                            // Vérifier si c'est un jour férié
+                            const ferie = joursFeries[moisJour];
+                            if (ferie) {
+                                markAsFerie(jour.name, ferie["name"], ferie["image"]);
+                            }
                         }
 
                         // Créer des événements à partir des pointages
@@ -589,7 +838,17 @@
                     addEventOnCalandar("Réunion","14h30","16h00","mardi","rouge");
                     addEventOnCalandar("Pause café","16h15","16h45","mardi","vert");
                     addEventOnCalandar("Cours","10h00","12h00","mercredi","vert");
+                    
+                    // Exemple de démonstration des fonctionnalités
+                    markAsTeletravail("jeudi");
+                    markAsConge("vendredi", "Congé payé");
+                    if (config.days.find(d => d.name === "lundi")) {
+                        markAsFerie("lundi", "Jour férié");
+                    }
                 }
+
+                markAsTeletravail("mercredi");
+                markAsConge("vendredi", "Congé payé");
             }
         });
         window.postMessage({ get_storage: ["pref_startHour", "pref_endHour", "pref_hourStep"], id: "changeHours" }, "*");
