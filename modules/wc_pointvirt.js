@@ -40,18 +40,19 @@
     };
 
     // Liste des jours fériés en France (format MM-DD)
-    const joursFeries = {
-        "01-01": {"name":"Jour de l'an", "image":"%file.ferie/an.jpg%"},
-        "05-01": {"name":"Fête du travail", "image":"%file.ferie/travail.jpg%"},
-        "05-08": {"name":"Victoire 1945", "image":"%file.ferie/8mai.jpg%"},
-        "07-14": {"name":"Fête nationale", "image":"%file.ferie/fetenationale.jpg%"},
-        "08-15": {"name":"Assomption", "image":"%file.ferie/asumption.jpg%"},
-        "11-01": {"name":"Toussaint", "image":"%file.ferie/toussaint.png%"},
-        "11-11": {"name":"Armistice", "image":"%file.ferie/armistice.jpg%"},
-        "12-25": {"name":"Noël", "image":"%file.ferie/noel.jpg%"}
-        // TODO: il manque des jours férié
-        // TODO: il manque les congés qui ne fonctionne pas
-    };
+    // const joursFeries = {
+    //     "01-01": {"name":"Jour de l'an", "image":"%file.ferie/an.jpg%"},
+    //     "05-01": {"name":"Fête du travail", "image":"%file.ferie/travail.jpg%"},
+    //     "05-08": {"name":"Victoire 1945", "image":"%file.ferie/8mai.jpg%"},
+    //     "07-14": {"name":"Fête nationale", "image":"%file.ferie/fetenationale.jpg%"},
+    //     "08-15": {"name":"Assomption", "image":"%file.ferie/asumption.jpg%"},
+    //     "11-01": {"name":"Toussaint", "image":"%file.ferie/toussaint.png%"},
+    //     "11-11": {"name":"Armistice", "image":"%file.ferie/armistice.jpg%"},
+    //     "12-25": {"name":"Noël", "image":"%file.ferie/noel.jpg%"}
+    //     // TODO: il manque des jours férié
+    //     // TODO: il manque les congés qui ne fonctionne pas
+    // };
+    const joursFeries = getHolidays();
 
     let currentWeekOffset = 0; // 0 = semaine actuelle, -1 = semaine précédente, +1 = semaine suivante
 
@@ -90,18 +91,6 @@
             timeMarker.textContent = formatHour24(hour);
             timeline.appendChild(timeMarker);
         }
-    }
-
-    // Fonction pour vérifier si une date est un jour férié
-    function isJourFerie(dateStr) {
-        // Format de dateStr: YYYY-MM-DD
-        if (!dateStr) return false;
-        
-        const parts = dateStr.split('-');
-        if (parts.length !== 3) return false;
-        
-        const mmdd = parts[1] + '-' + parts[2];
-        return joursFeries[mmdd] || false;
     }
 
     // Fonction pour générer les jours
@@ -607,11 +596,11 @@
     }
 
     function loadCalendarData() {
-        console.debug("Chargement des données pour offset: " + currentWeekOffset);
+        // console.debug("Chargement des données pour offset: " + currentWeekOffset);
         
         // Récupérer les données
         let data = getData();
-        console.debug("Data: " + JSON.stringify(data));
+        // console.debug("Data: " + JSON.stringify(data));
         
         if (data && data.response && data.response.popu) {
             // Mapper les jours de la semaine en français
@@ -648,19 +637,19 @@
                 // Récupérer les pointages
                 if (respData.cpointagereel && respData.cpointagereel.rows) {
                     pointagesData = respData.cpointagereel.rows;
-                    console.debug("Nombre de pointages trouvés: " + pointagesData.length);
+                    // console.debug("Nombre de pointages trouvés: " + pointagesData.length);
                 }
                 
                 // Récupérer les absences (congés)
                 if (respData.cabsenceuser && respData.cabsenceuser.rows) {
                     absencesData = respData.cabsenceuser.rows;
-                    console.debug("Nombre d'absences trouvées: " + absencesData.length);
+                    // console.debug("Nombre d'absences trouvées: " + absencesData.length);
                 }
                 
                 // Récupérer le télétravail
                 if (respData.cteletravail && respData.cteletravail.rows) {
                     teletravailData = respData.cteletravail.rows;
-                    console.debug("Nombre de télétravails trouvés: " + teletravailData.length);
+                    // console.debug("Nombre de télétravails trouvés: " + teletravailData.length);
                 }
                 
                 // Détecter les oublis de pointage
@@ -747,12 +736,9 @@
                     const semaine = getStartAndEndOfWeek(targetDate);
                     const jourDate = new Date(semaine.monday);
                     jourDate.setDate(jourDate.getDate() + config.days.indexOf(jour));
-                    
-                    const moisJour = (jourDate.getMonth() + 1).toString().padStart(2, '0') + '-' + 
-                                    jourDate.getDate().toString().padStart(2, '0');
-                    
+ 
                     // Vérifier si c'est un jour férié
-                    const ferie = joursFeries[moisJour];
+                    const ferie = joursFeries[jourDate.toISOString().split('T')[0]];
                     if (ferie) {
                         markAsFerie(jour.name, ferie["name"], ferie["image"]);
                     }
@@ -930,10 +916,6 @@
                 "lang":"fr",
                 "debug":false
             }
-            
-            // DEBUG : Afficher les dates utilisées
-            console.debug("Récupération données pour la semaine du " + formatDate(week.monday) + " au " + formatDate(week.sunday));
-            
             return encodeURIComponent(srh.ajax.buildWSParameter(data));
         }
 
@@ -957,6 +939,58 @@
         }
         
         return JSON.parse(data);
+    }
+
+    function getHolidays() {
+        let ctx = srh.getIdContext();
+        let datactx = {
+            "script":"ws_holidays",
+            "soc":"AL",
+            "eta":"ALT",
+            "obj":true,
+            "idcontext":ctx,
+            "pversion":-1,
+            "lang":"fr",
+            "debug":false
+        }
+        datactx = encodeURIComponent(srh.ajax.buildWSParameter(datactx));
+        let data = localStorage.getItem("holidays");
+
+        if (data == null || data == undefined || parseInt(new Date().toISOString().split('-')[0]) != parseInt(JSON.parse(data)[0].val.split('-')[0])) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/smartw080/srh/smartrh/smartrh", false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+            xhr.send("ctx=" + datactx);
+            if (xhr.status == 200) {
+                data = xhr.responseText.slice(1, -1);
+                data = JSON.parse(data).response.holidays;
+                const currentYear = new Date().getFullYear();
+                data = data.filter(h => {
+                    const year = new Date(h.val).getFullYear();
+                    return year === currentYear;
+                });
+                localStorage.setItem("holidays", JSON.stringify(data));
+            }
+        } else {
+            data = JSON.parse(data);
+        }
+
+        function imageName(name) {
+            let basepath = `%file.ferie/an.jpg%`;
+            name = name.split(" ");
+            name = name[name.length-1].toLowerCase();
+            name = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return basepath.replace("an.jpg", name + ".jpg");
+        }
+
+        const result = {};
+        data.forEach((item, index) => {
+            result[item.val] = {
+                name: item.lib,
+                image: imageName(item.lib)
+            };
+        });
+        return result;
     }
 
     // Ajout d'une fonction de détection d'oubli de pointage
@@ -1022,44 +1056,52 @@
     function initEvent() {
         window.addEventListener("message", (event) => {
             if (event.source !== window || !event.data?.source == "concorde") return;
-            if (event.data.data && event.data.id == "changeHours") {                 
-                console.debug("data: " + JSON.stringify(event.data.data));
+            if (event.data.data && event.data.id == "changeHours") {
                 changeHours(...Object.values(event.data.data));
                 loadCalendarData();
             }
         });
-        
+
         window.postMessage({ get_storage: ["pref_startHour", "pref_endHour", "pref_hourStep"], id: "changeHours" }, "*");
         console.debug("Event loaded");
     }
 
-    function cleanLocalStorage() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Ignorer l'heure
+    function cleanLocalStorage(full=false) {
+        if (full) {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.match(/^(\d{4}-\d{2}-\d{2})-(\d{4}-\d{2}-\d{2})$/)) {
+                    localStorage.removeItem(key);
+                    i = -1;
+                }
+            }
+        } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Ignorer l'heure
 
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
 
-            // Vérifie le format YYYY-MM-DD-YYYY-MM-DD
-            const match = key.match(/^(\d{4}-\d{2}-\d{2})-(\d{4}-\d{2}-\d{2})$/);
-            if (match) {
-                const startDateStr = match[1]; // Le lundi
-                const startDate = new Date(startDateStr);
-                startDate.setHours(0, 0, 0, 0);
+                // Vérifie le format YYYY-MM-DD-YYYY-MM-DD
+                const match = key.match(/^(\d{4}-\d{2}-\d{2})-(\d{4}-\d{2}-\d{2})$/);
+                if (match) {
+                    const startDate = new Date(match[1]); // Lundi
+                    const endDate = new Date(match[2]);   // Dimanche
+                    startDate.setHours(0, 0, 0, 0);
+                    endDate.setHours(0, 0, 0, 0);
 
-                if (!isNaN(startDate.getTime())) {
-                    const ageInDays = (today - startDate) / (1000 * 60 * 60 * 24);
+                    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                        const ageInDays = (today - endDate) / (1000 * 60 * 60 * 24);
 
-                    const isTooOld = ageInDays > 30;
-                    const isToday = startDate.getTime() === today.getTime();
-                    const isInFuture = startDate > today;
+                        const isTooOld = ageInDays > 30;
+                        const isCurrentWeek = today >= startDate && today <= endDate;
+                        const isInFuture = today < startDate;
 
-                    if (isTooOld || isToday || isInFuture) {
-                        console.log(`Suppression de la clé semaine : ${key}`);
-                        localStorage.removeItem(key);
-
-                        // Repart de zéro car localStorage a changé
-                        i = -1;
+                        if (isTooOld || isCurrentWeek || isInFuture) {
+                            localStorage.removeItem(key);
+                            // Redémarrer la boucle car localStorage a changé
+                            i = -1;
+                        }
                     }
                 }
             }
