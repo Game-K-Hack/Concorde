@@ -1,7 +1,14 @@
 (function () {
+    const module_name = "wc_pointvirt";
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
-    iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) loaded");
+    console.log = iframe.contentWindow.console.log;
+    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
+
+    console.debug("loaded");
 
     // Configuration du calendrier
     const config = {
@@ -555,7 +562,7 @@
         setupNavigationEvents();
         updateWeekDisplay();
 
-        iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) HTML loaded");
+        console.debug("HTML loaded");
     }
 
     function setupNavigationEvents() {
@@ -600,11 +607,11 @@
     }
 
     function loadCalendarData() {
-        iframe.contentWindow.console.log("[DEBUG] Chargement des données pour offset: " + currentWeekOffset);
+        console.debug("Chargement des données pour offset: " + currentWeekOffset);
         
         // Récupérer les données
         let data = getData();
-        iframe.contentWindow.console.log("[DEBUG] Data: " + JSON.stringify(data));
+        console.debug("Data: " + JSON.stringify(data));
         
         if (data && data.response && data.response.popu) {
             // Mapper les jours de la semaine en français
@@ -641,19 +648,19 @@
                 // Récupérer les pointages
                 if (respData.cpointagereel && respData.cpointagereel.rows) {
                     pointagesData = respData.cpointagereel.rows;
-                    iframe.contentWindow.console.log("[DEBUG] Nombre de pointages trouvés: " + pointagesData.length);
+                    console.debug("Nombre de pointages trouvés: " + pointagesData.length);
                 }
                 
                 // Récupérer les absences (congés)
                 if (respData.cabsenceuser && respData.cabsenceuser.rows) {
                     absencesData = respData.cabsenceuser.rows;
-                    iframe.contentWindow.console.log("[DEBUG] Nombre d'absences trouvées: " + absencesData.length);
+                    console.debug("Nombre d'absences trouvées: " + absencesData.length);
                 }
                 
                 // Récupérer le télétravail
                 if (respData.cteletravail && respData.cteletravail.rows) {
                     teletravailData = respData.cteletravail.rows;
-                    iframe.contentWindow.console.log("[DEBUG] Nombre de télétravails trouvés: " + teletravailData.length);
+                    console.debug("Nombre de télétravails trouvés: " + teletravailData.length);
                 }
                 
                 // Détecter les oublis de pointage
@@ -813,7 +820,7 @@
                 }
             }
         } else {
-            iframe.contentWindow.console.log("[DEBUG] Aucune donnée disponible pour cette semaine");
+            console.debug("Aucune donnée disponible pour cette semaine");
         }
     }
 
@@ -906,13 +913,7 @@
             return d.toISOString().split('T')[0];
         }
         
-        function getsrhdata() {
-            // CORRECTION : Calculer la semaine avec l'offset actuel
-            const today = new Date();
-            const targetDate = new Date(today);
-            targetDate.setDate(today.getDate() + (currentWeekOffset * 7));
-            const week = getStartAndEndOfWeek(targetDate);
-            
+        function getsrhdata(week) {
             let ctx = srh.getIdContext();
             let data = {
                 "script":"ws_gtareadtables",
@@ -931,19 +932,31 @@
             }
             
             // DEBUG : Afficher les dates utilisées
-            iframe.contentWindow.console.log("[DEBUG] Récupération données pour la semaine du " + formatDate(week.monday) + " au " + formatDate(week.sunday));
+            console.debug("Récupération données pour la semaine du " + formatDate(week.monday) + " au " + formatDate(week.sunday));
             
             return encodeURIComponent(srh.ajax.buildWSParameter(data));
         }
 
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/smartw080/srh/smartrh/smartrh", false);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-        xhr.send("ctx=" + getsrhdata());
-        if (xhr.status == 200) {
-            let data = JSON.parse(xhr.responseText.slice(1, -1));
-            return data;
+        const today = new Date();
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + (currentWeekOffset * 7));
+        const week = getStartAndEndOfWeek(targetDate);
+        const keydate = formatDate(week.monday) + "-" + formatDate(week.sunday);
+
+        let data = localStorage.getItem(keydate);
+
+        if (data == null || data == undefined) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/smartw080/srh/smartrh/smartrh", false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+            xhr.send("ctx=" + getsrhdata(week));
+            if (xhr.status == 200) {
+                data = xhr.responseText.slice(1, -1);
+                localStorage.setItem(keydate, data);
+            }
         }
+        
+        return JSON.parse(data);
     }
 
     // Ajout d'une fonction de détection d'oubli de pointage
@@ -1010,21 +1023,53 @@
         window.addEventListener("message", (event) => {
             if (event.source !== window || !event.data?.source == "concorde") return;
             if (event.data.data && event.data.id == "changeHours") {                 
-                iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) data: " + JSON.stringify(event.data.data));
+                console.debug("data: " + JSON.stringify(event.data.data));
                 changeHours(...Object.values(event.data.data));
-
-                // CORRECTION : Utiliser la nouvelle fonction centralisée
                 loadCalendarData();
             }
         });
         
         window.postMessage({ get_storage: ["pref_startHour", "pref_endHour", "pref_hourStep"], id: "changeHours" }, "*");
-        iframe.contentWindow.console.log("[DEBUG] (module:wc_pointvirt) Event loaded");
+        console.debug("Event loaded");
+    }
+
+    function cleanLocalStorage() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Ignorer l'heure
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+
+            // Vérifie le format YYYY-MM-DD-YYYY-MM-DD
+            const match = key.match(/^(\d{4}-\d{2}-\d{2})-(\d{4}-\d{2}-\d{2})$/);
+            if (match) {
+                const startDateStr = match[1]; // Le lundi
+                const startDate = new Date(startDateStr);
+                startDate.setHours(0, 0, 0, 0);
+
+                if (!isNaN(startDate.getTime())) {
+                    const ageInDays = (today - startDate) / (1000 * 60 * 60 * 24);
+
+                    const isTooOld = ageInDays > 30;
+                    const isToday = startDate.getTime() === today.getTime();
+                    const isInFuture = startDate > today;
+
+                    if (isTooOld || isToday || isInFuture) {
+                        console.log(`Suppression de la clé semaine : ${key}`);
+                        localStorage.removeItem(key);
+
+                        // Repart de zéro car localStorage a changé
+                        i = -1;
+                    }
+                }
+            }
+        }
     }
 
     function init() {
         let elm = document.getElementById(`main-tabs`);
         if (elm) {
+            cleanLocalStorage();
             initHTML();
             initEvent();
         } else setTimeout(() => init(), 100);
