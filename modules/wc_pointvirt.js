@@ -3,10 +3,10 @@
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     console.log = iframe.contentWindow.console.log;
-    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
-    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
-    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
-    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
+    console.debug = function(...data) { console.log("[DEBUG] (module:" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (module:" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (module:" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (module:" + module_name + ") " + data); }
 
     console.debug("loaded");
 
@@ -292,14 +292,23 @@
         let elm = document.getElementById(`main-tabs`);
 
         if (elm.querySelector(`ul`)) elm.querySelector(`ul`).remove();
-        if (elm.querySelector(`div`)) elm.querySelector(`div`).remove();
+        // if (elm.querySelector(`div`)) elm.querySelector(`div`).remove();
+        elm.querySelector(`div[id="main-content"] div[id="tab-wc_pointvirt"]`).remove();
 
         elm.style.height = `100vh`;
         elm.style.overflowY = `auto`;
 
+        // let mainContent = document.createElement("div");
+        // mainContent.id = "main-content";
+        // elm.appendChild(mainContent);
+
+        // let tab = document.createElement("div");
+        // tab.id = "tab-wc_pointvirt";
+        // mainContent.appendChild(tab);
+
         let module = document.createElement("div");
         module.id = "calendar-module";
-        elm.appendChild(module);
+        elm.querySelector(`div[id="main-content"]`).appendChild(module);
 
         // ===== NOUVEAU : Ajouter la barre de navigation =====
         let navigationBar = document.createElement("div");

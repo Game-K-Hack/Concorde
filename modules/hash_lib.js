@@ -1,12 +1,12 @@
 (function () {
-    const module_name = "lib:hash";
+    const module_name = "hash";
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     console.log = iframe.contentWindow.console.log;
-    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
-    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
-    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
-    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
+    console.debug = function(...data) { console.log("[DEBUG] (lib:" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (lib:" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (lib:" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (lib:" + module_name + ") " + data); }
 
     console.debug("loaded");
 

@@ -3,10 +3,10 @@
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     console.log = iframe.contentWindow.console.log;
-    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
-    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
-    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
-    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
+    console.debug = function(...data) { console.log("[DEBUG] (module:" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (module:" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (module:" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (module:" + module_name + ") " + data); }
 
     console.debug("loaded");
 
@@ -23,6 +23,9 @@
         if (code && code != oldcode) {
             oldcode = code;
             console.debug("code: " + code);
+
+            if (document.getElementById("calendar-module")) document.getElementById("calendar-module").remove();
+
             window.postMessage({ source: "concorde", codeSRH: code }, "*");
         }
     }
