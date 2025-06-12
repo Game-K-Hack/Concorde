@@ -296,7 +296,7 @@
         elm.querySelector(`div[id="main-content"] div[id="tab-wc_pointvirt"]`).remove();
 
         elm.style.height = `100vh`;
-        elm.style.overflowY = `auto`;
+        elm.querySelector(`div[id="main-content"]`).style.overflowY = `auto`;
 
         // let mainContent = document.createElement("div");
         // mainContent.id = "main-content";
