@@ -84,7 +84,8 @@ function injectScript() {
     (document.head || document.documentElement).appendChild(s);
     s.remove();
 
-    injectModule("hash_lib");
+    injectModule("hash.lib");
+    injectModule("YWOTClient.lib.js");
     injectModule("__init__");
     
     let iframe = document.createElement("iframe");

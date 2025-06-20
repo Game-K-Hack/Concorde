@@ -1,15 +1,17 @@
 Accueil:
-    - bouton pour activer/désactiver la suppression des modules
+    ❌ bouton pour activer/désactiver la suppression des modules
+    [PK] Trop compliqué pour ci peu
 
 Pointage:
     [!] Le calendrier actuel est en 5 jours mais si une personne a pointé un week-end
         alors agrandir automatiquement le calendrier à 7 jours
         -----
-    - Pouvoir définir des évènements afin de calculer et d'anticiper son temps
-    - Voir les jours fériés / TT / Congé
+    ⏳❌ Pouvoir définir des évènements afin de calculer et d'anticiper son temps
+    [PK] A voir, mais ça me parrais compliqué
+    ⏳ Voir les jours fériés / TT / Congé
 
 Planning:
-    - Différencier la situation des gens
+    ✅ Différencier la situation des gens
         → icône (par exemple "ordinateur") quand ils sont en TT
         → modifier les couleurs
 
@@ -18,38 +20,42 @@ Concorde:
     [!] Attention quand on modifie une classe CSS, cela peut impacter d'autres pages
         -----
     - Accueil:
-        - Sélectionner un fond accueil:
+        ⏳ Sélectionner un fond accueil:
             → soit par une image
             → soit par une couleur
-        - Changer la transparence des box
+        ⏳ Changer la transparence des box
             → et pourquoi pas aussi la couleur
-        - Pouvoir voir le changement en direct sans devoir revenir à la page d'accueil
+        ❌ Pouvoir voir le changement en direct sans devoir revenir à la page d'accueil
+        [PK] Trop compliqué pour ci peu
             → grâce à la balise HTML iframe
-        - Widget:
+        ⏳ Widget:
             - Smartbalance (même principe que mon extension)
                 - voir le temps travaillé du jour
                 - voir sa balance de la semaine / du mois en cours
                 - voir l'heure idéale de sortie / de sortie équilibrée
     - Pointage:
-        - Personnaliser les couleurs, l'affichage de certains éléments, etc.
+        ❌ Personnaliser les couleurs, l'affichage de certains éléments, etc.
+        [PK] Inutile
     - Thème:
-        - Personnaliser les couleurs du thème
+        ❌ Personnaliser les couleurs du thème
+        [PK] Trop compliqué pour ci peu
             → si possible faire en sorte de limiter le changement que si l'utilisateur 
               a sélectionné le thème "custom", cela implique donc de créer un nouveau 
               thème sélectionnable par l'utilisateur.
-        - Personnaliser le contour de sa photo et le fond de sa bannière
+        ⏳ Personnaliser le contour de sa photo et le fond de sa bannière
             → visible seulement par les autres utilisateurs de l'extension "concorde" et
               seulement quand on recherche une personne dans l'annuaire.
     - Ticket:
-        - Créer un ticket
-        - Voir le suivi des tickets
+        ✅ Créer un ticket
+        ❌ Voir le suivi des tickets
+        [PK] Trop compliqué pour ci peu
             → cette fonctionnalité est optionnelle, car pénible à mettre en place de mon
               côté pour pouvoir actualiser chaque ticket de chaque utilisateur. En plus
               il faut bien maintenir la base de données et donc en avoir une.
     - Info (à propos)
-        - Avoir un bouton pour partager l'extension
-        - E-mail pour me contacter
-        - Numéro de version
-        - Identifiant de l'utilisateur
+        ⏳ Avoir un bouton pour partager l'extension
+        ✅ E-mail pour me contacter
+        ✅ Numéro de version
+        ✅ Identifiant de l'utilisateur
             → utile dans le cas où l'on utilise une base de données
-        - Documentation
+        ⏳ Documentation

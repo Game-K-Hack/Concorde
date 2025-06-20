@@ -265,47 +265,5 @@ class YWOTClient {
     }
 }
 
-// Fonction utilitaire pour créer un client rapidement
-function createYWOTClient(worldName) {
-    return new YWOTClient(worldName);
-}
 
-// Exemple d'utilisation
-async function example() {
-    const client = new YWOTClient("~TesTemporaireLXZGHYK");
-    
-    try {
-        // Connexion
-        const connected = await client.connect();
-        if (!connected) {
-            console.error("Impossible de se connecter");
-            return;
-        }
-
-        // Écriture
-        console.log("=== ÉCRITURE ===");
-        await client.writeMultipleLines([
-            { line: 0, col: 0, text: "A" },
-            { line: 1, col: 42, text: "Z" },
-            { line: 2, col: 16, text: "Voici la dix-huitième ligne !" }
-        ]);
-
-        // Attendre un peu
-        await client.sleep(2000);
-
-        // Lecture
-        console.log("=== LECTURE ===");
-        const text = await client.readText(0, 0, 3, 3);
-        console.log("Texte lu:");
-        console.log(text);
-
-    } catch (error) {
-        console.error("Erreur:", error);
-    } finally {
-        client.close();
-    }
-}
-
-// Export pour utilisation
 window.YWOTClient = YWOTClient;
-window.createYWOTClient = createYWOTClient;

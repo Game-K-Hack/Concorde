@@ -187,7 +187,7 @@
     }
 
     // Fonction pour ajouter un événement au calendrier
-    function addEventOnCalandar(titre, heureDebut, heureFin, jour, couleur) {
+    function addEventOnCalandar(titre, heureDebut, heureFin, jour, couleur, detailsPointage=null) {
         // Normaliser le jour (tout en minuscules)
         const jourNormalise = jour.toLowerCase();
 
@@ -237,6 +237,18 @@
         eventElement.style.backgroundColor = bgColor;
         eventElement.style.top = `${startPercentage}%`;
         eventElement.style.height = `${heightPercentage}%`;
+        
+        // Vérifier si c'est une saisie manuelle et ajouter le style approprié
+        if (detailsPointage && detailsPointage.some(p => p.mtype.val === "$user")) {
+            eventElement.classList.add("manual-entry");
+        }
+        
+        // Ajouter la classe clickable si on a des détails
+        if (detailsPointage && detailsPointage.length > 0) {
+            eventElement.classList.add("clickable");
+            eventElement.addEventListener('click', () => showEventDetails(detailsPointage, titre, jour));
+        }
+        
         if (heureFin == null || heureFin == undefined) {
             eventElement.style.borderBottom = `3px dashed var(--eventBorderColor)`;
             heureFin = "...";
@@ -254,6 +266,77 @@
             dayEventsContainer.appendChild(eventElement);
         } else {
             console.error(`Conteneur d'événements pour "${jour}" non trouvé`);
+        }
+    }
+
+    function showEventDetails(pointages, titre, jour) {
+        console.log(pointages);
+
+        // Créer la modal
+        const modal = document.createElement('div');
+        modal.className = 'event-modal';
+        
+        // Trier les pointages par heure
+        const pointagesTries = pointages.sort((a, b) => a.timecorr.val.localeCompare(b.timecorr.val));
+        
+        let detailsHTML = '';
+        pointagesTries.forEach((pointage, index) => {
+            const typePointage = index % 2 === 0 ? 'Entrée' : 'Sortie';
+            const sourceLib = getSourceLibelle(pointage.idsource.val, pointage.mtype.val);
+            const heureComplete = pointage.mitem.val; // Heure avec les secondes
+            const heureCorrigee = pointage.timecorr.val;
+            
+            detailsHTML += `
+                <div class="event-detail">
+                    <span class="event-detail-label">${typePointage}:</span>
+                    <span class="event-detail-value">${heureCorrigee}</span>
+                </div>
+                <div class="event-detail">
+                    <span class="event-detail-label">Heure définie le :</span>
+                    <span class="event-detail-value">${heureComplete}</span>
+                </div>
+                <div class="event-detail">
+                    <span class="event-detail-label">Source:</span>
+                    <span class="event-detail-value">${sourceLib}</span>
+                </div>
+                ${index < pointagesTries.length - 1 ? '<hr style="margin: 1rem 0;">' : ''}
+            `;
+        });
+        
+        modal.innerHTML = `
+            <div class="event-modal-content">
+                <div class="event-modal-header">
+                    Détails - ${titre} (${jour})
+                </div>
+                <div class="event-modal-body">
+                    ${detailsHTML}
+                </div>
+                <button class="event-modal-close" onclick="this.closest('.event-modal').remove()">
+                    Fermer
+                </button>
+            </div>
+        `;
+        
+        // Fermer la modal en cliquant à l'extérieur
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        document.body.appendChild(modal);
+    }
+
+    function getSourceLibelle(idsource, mtype) {
+        if (mtype === "$user") {
+            if (idsource.endsWith("-w080")) idsource = idsource.replace("-w080", "");
+            return "Saisie manuelle (" + idsource + ")";
+        } else if (idsource === "$pyrescom") {
+            return "Pointeuse badge";
+        } else if (idsource === "$virtual") {
+            return "Pointage virtuel";
+        } else {
+            return idsource;
         }
     }
 
@@ -503,9 +586,83 @@
             /* Style pour les jours fériés */
             .ferie-background {
                 background-size: cover;
-                background-image: linear-gradient(rgb(240, 240, 250), rgba(240, 240, 250, 0.5)), url(https://voltfrance.org/img/containers/assets/images_actualites/8_mai_1945.jpg/42dfad027cf87874311499afa074e36c.jpg);
                 background-repeat: no-repeat;
                 background-position: center;
+            }
+            /* Style pour les événements modifiés manuellement */
+            .event.manual-entry {
+                background-color: #ffefe2 !important;
+            }
+
+            /* Style pour les événements cliquables */
+            .event.clickable {
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .event.clickable:hover {
+                transform: scale(1.02);
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            }
+
+            /* Modal pour les détails */
+            .event-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+
+            .event-modal-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 10px;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .event-modal-header {
+                font-size: 1.2rem;
+                font-weight: bold;
+                margin-bottom: 1rem;
+                border-bottom: 2px solid #007bff;
+                padding-bottom: 0.5rem;
+            }
+
+            .event-modal-body {
+                margin-bottom: 1.5rem;
+            }
+
+            .event-detail {
+                margin-bottom: 0.5rem;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .event-detail-label {
+                font-weight: 600;
+                color: #495057;
+            }
+
+            .event-detail-value {
+                color: #007bff;
+            }
+
+            .event-modal-close {
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 5px;
+                cursor: pointer;
+                float: right;
             }`;
         document.getElementsByTagName('head')[0].appendChild(style);
 
@@ -645,7 +802,7 @@
                 
                 // Récupérer les pointages
                 if (respData.cpointagereel && respData.cpointagereel.rows) {
-                    pointagesData = respData.cpointagereel.rows;
+                    pointagesData = respData.cpointagereel.rows.filter(row => !row.deleted.val);
                     // console.debug("Nombre de pointages trouvés: " + pointagesData.length);
                 }
                 
@@ -757,6 +914,14 @@
                 for (const jour in pointagesParJour) {
                     const pointages = pointagesParJour[jour].sort((a, b) => a.heure.localeCompare(b.heure));
 
+                    // Garder une référence aux pointages originaux pour les détails
+                    const pointagesOriginaux = respData.cpointagereel.rows.filter(p => {
+                        const datePointage = p.datecorr.val;
+                        const dateObj = new Date(datePointage + "T" + p.timecorr.val);
+                        const jourSemaine = joursSemaine[dateObj.getDay()];
+                        return jourSemaine === jour && !p.deleted.val;
+                    });
+
                     // Parcourir tous les pointages et créer des paires
                     for (let i = 0; i < pointages.length; i++) {
                         const heureDebut = pointages[i].heure;
@@ -803,12 +968,14 @@
                         
                         // Si on est sur un pointage d'entrée
                         if (i % 2 === 0) {
+                            let pointagesPeriode = pointagesOriginaux.slice(i, i + 2);
                             addEventOnCalandar(
                                 "Travail",
                                 heureDebut, 
                                 heureFin,
                                 jour,
-                                "bleu"
+                                "bleu",
+                                pointagesPeriode
                             );
                         }
                     }
@@ -943,6 +1110,7 @@
             xhr.send("ctx=" + getsrhdata(week));
             if (xhr.status == 200) {
                 data = xhr.responseText.slice(1, -1);
+                console.log(data);
                 localStorage.setItem(keydate, data);
             }
         }
