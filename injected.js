@@ -24,6 +24,8 @@
             oldcode = code;
             console.debug("code: " + code);
 
+            window.fermerPanneauConfig();
+
             if (document.getElementById("calendar-module")) document.getElementById("calendar-module").remove();
 
             window.postMessage({ source: "concorde", codeSRH: code }, "*");

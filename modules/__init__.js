@@ -558,4 +558,6 @@
     } else {
         init();
     }
+
+    window.fermerPanneauConfig = fermerPanneauConfig;
 })();
