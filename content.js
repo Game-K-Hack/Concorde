@@ -85,7 +85,7 @@ function injectScript() {
     s.remove();
 
     injectModule("hash.lib");
-    injectModule("YWOTClient.lib.js");
+    injectModule("supabase.lib.js");
     injectModule("__init__");
     
     let iframe = document.createElement("iframe");

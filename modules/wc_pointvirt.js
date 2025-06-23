@@ -39,19 +39,6 @@
         eventBorderColor: "#dcdcf0",
     };
 
-    // Liste des jours fériés en France (format MM-DD)
-    // const joursFeries = {
-    //     "01-01": {"name":"Jour de l'an", "image":"%file.ferie/an.jpg%"},
-    //     "05-01": {"name":"Fête du travail", "image":"%file.ferie/travail.jpg%"},
-    //     "05-08": {"name":"Victoire 1945", "image":"%file.ferie/8mai.jpg%"},
-    //     "07-14": {"name":"Fête nationale", "image":"%file.ferie/fetenationale.jpg%"},
-    //     "08-15": {"name":"Assomption", "image":"%file.ferie/asumption.jpg%"},
-    //     "11-01": {"name":"Toussaint", "image":"%file.ferie/toussaint.png%"},
-    //     "11-11": {"name":"Armistice", "image":"%file.ferie/armistice.jpg%"},
-    //     "12-25": {"name":"Noël", "image":"%file.ferie/noel.jpg%"}
-    //     // TODO: il manque des jours férié
-    //     // TODO: il manque les congés qui ne fonctionne pas
-    // };
     const joursFeries = getHolidays();
 
     let currentWeekOffset = 0; // 0 = semaine actuelle, -1 = semaine précédente, +1 = semaine suivante
@@ -374,20 +361,10 @@
     function initHTML() {
         let elm = document.getElementById(`main-tabs`);
 
-        if (elm.querySelector(`ul`)) elm.querySelector(`ul`).remove();
-        // if (elm.querySelector(`div`)) elm.querySelector(`div`).remove();
         elm.querySelector(`div[id="main-content"] div[id="tab-wc_pointvirt"]`).remove();
 
         elm.style.height = `100vh`;
         elm.querySelector(`div[id="main-content"]`).style.overflowY = `auto`;
-
-        // let mainContent = document.createElement("div");
-        // mainContent.id = "main-content";
-        // elm.appendChild(mainContent);
-
-        // let tab = document.createElement("div");
-        // tab.id = "tab-wc_pointvirt";
-        // mainContent.appendChild(tab);
 
         let module = document.createElement("div");
         module.id = "calendar-module";

@@ -558,4 +558,18 @@
     } else {
         init();
     }
+
+    window.fermerPanneauConfig = fermerPanneauConfig;
+
+    (async () => {
+        const message = "Ceci est un message secret !";
+        const password = "monMotDePasse123";
+
+        console.log("Message original:", message);
+        const encrypted = await chiffrer(message, password);
+
+        if (encrypted) {
+        await dechiffrer(encrypted, password);
+        }
+    })();
 })();
