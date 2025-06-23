@@ -1,0 +1,235 @@
+(function() {
+
+    let equivalency = [
+        {
+            url: "https://portail-rh.algam.net/smartw080/srh/smartrh/smartrh", 
+            searchresponse: `{"response":{"mwf":"blog_article",`,
+            replace: /]}}\)$/,
+            by: ""
+        }
+    ];
+
+    let originalSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.send = function(...args) {
+        let originalOnReadyStateChange = this.onreadystatechange;
+
+        this.onreadystatechange = function() {
+            if (this.readyState === 4 && this.status >= 200 && this.status < 300) {
+                for (let elm of equivalency) {
+                    if (this.responseURL === elm.url && this.responseText.match(new RegExp(elm.searchresponse)).length > 0) {
+                        let modifiedResponse = -1;
+                        if (typeof this.responseText === "string") {
+                            alert(this.responseText)
+                            let i = prompt("JSON :");
+                            modifiedResponse = this.responseText.replace(elm.replace, i); //elm.by);
+                        } else if (typeof this.responseText === "object") {
+                            modifiedResponse = JSON.parse(JSON.stringify(this.responseText).replace(elm.replace, elm.by));
+                        }
+
+                        if (modifiedResponse !== -1) {
+                            Object.defineProperty(this, "responseText", {
+                                get: function() {
+                                    return modifiedResponse;
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Appeler l'ancien gestionnaire (si défini)
+            if (originalOnReadyStateChange) {
+                originalOnReadyStateChange.apply(this, arguments);
+            }
+        };
+
+        return originalSend.apply(this, args);
+    };
+
+})();
+
+
+
+
+function interceptor(match_url, match_body, replace, replace_by, function_before, function_after) {
+    let originalSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.send = function(...args) {
+        let originalOnReadyStateChange = this.onreadystatechange;
+
+        this.onreadystatechange = function() {
+            if (this.readyState === 4 && this.status >= 200 && this.status < 300) {
+                if (this.responseURL === match_url && this.responseText.match(new RegExp(match_body)).length > 0) {
+
+                    let modifiedResponse = null;
+                    if (function_before !== undefined || function_before !== null) {
+                        modifiedResponse = function_before(this.responseText);
+                    }
+
+                    if (modifiedResponse == undefined || modifiedResponse == null) {
+                        modifiedResponse = this.responseText.replace(replace, replace_by);
+                    }
+
+                    Object.defineProperty(this, "responseText", {
+                        get: function() {
+                            return modifiedResponse;
+                        }
+                    });
+                }
+            }
+
+            // Appeler l'ancien gestionnaire (si défini)
+            if (originalOnReadyStateChange) {
+                originalOnReadyStateChange.apply(this, arguments);
+            }
+
+            if (typeof function_after === "function") {
+                function_after(this.responseText);
+            }
+        };
+
+        return originalSend.apply(this, args);
+    };
+}
+
+interceptor(
+    "https://portail-rh.algam.net/smartw080/srh/smartrh/smartrh", 
+    `{"response":{"mwf":"blog_article",`, 
+    "]}}\\)$",
+    `,{"demande": {"mdemand": 14057,"mwf": "blog_article","emetteur": "309410112","emetteurtype": "salarie","mmat": 309410112,"mcontrat": 0,"itemid": null,"itemtype": "salarie","laststep": 48,"lastcontext": 41,"status": "encours","ctime": "2023-05-25 12:01:16.866","message": null,"pver": "1","env": "$prod","campagne": null,"mcli": "W080"},"steps": [{"mdemand": 14057,"mstep": 48,"mwf": "blog_article","validant": "309410112","validanttype": "salarie","nextvalidant": "309410112","nextvalidanttype": "salarie","state1": "published","state2": "published","context": 41,"mmat": 309410112,"mcontrat": 0,"itemid": null,"itemtype": null,"error": null,"status": "ok","ctime": "2025-03-12 13:00:58.514","message": null,"covalidant": null,"covalidanttype": null,"nextcovalidant": null,"nextcovalidanttype": null,"pver": "1","usrctrl": "","mcli": "W080"}],"metiers": [{"mdemand": 14057,"mctx": 41,"mstep": 48,"mwf": "blog_article","ctime": "2025-03-12 13:00:58.514","mmat": null,"mcli": "","msoc": "CD","meta": "","ddeb": null,"dfin": null,"json": "({\"titre\":\"Rappel : fonctionnement du CET et bascule des compteurs au 1er juin :\",\"content\":\"<img style=\\\"display:none;\\\" src=\\\"data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7\\\">&lt;div&gt;&lt;strong&gt;&lt;span style=\\\"color: rgb(11, 83, 148);\\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Nous vous rappelons que pour tous les\\nsalariés en CDI, les jours de RTT /Jours de repos forfait jour (JR) / Congés\\nPayés (&lt;/strong&gt;&lt;span style=\\\"font-weight: bold;\\\"&gt;de référence&lt;/span&gt;&lt;strong&gt; N-1), non pris au 31 mai basculent automatiquement dans le CET en juin de chaque année : &lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;ul type=\\\"disc\\\"&gt;&lt;li&gt;Vers le CET monétisable\\n   pour les RTT et les jours de repos &lt;br&gt;&lt;/li&gt;&lt;li&gt;Vers le CET non\\n     monétisable pour les CP (de référence N-1)&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;\\n\\n&lt;p&gt;&lt;i&gt;Les salariés en CDD,&nbsp;n\u2019étant pas\\néligibles à l\u2019ouverture d\u2019un CET, bénéficient du report des jours non pris\\nvers leurs compteurs reliquat RTT/JR ou CP.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br&gt;&lt;/i&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&lt;u&gt;Rappel&nbsp;: combien\\nde jours peuvent être épargnés dans le CET&nbsp;?&lt;/u&gt;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&nbsp;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;-&gt; L\u2019intégralité\\n     des RTT et des JR&lt;/p&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;&lt;u&gt;-&gt; 5 jours de congés payés (de référence N-1) maximum par an&lt;/u&gt;&lt;/em&gt;&lt;/strong&gt; (le reliquat étant\\n     perdu)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;\\n\\n\\n\\n&lt;p&gt;&lt;strong&gt;Attention&nbsp;: épargne &lt;u&gt;maximum&lt;/u&gt;\\nde 12 jours par année de référence (RTT/JR/CP/Repos compensateurs confondus)&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;Les 2\\ncompteurs CET confondus sont plafonnés à 60 jours, sauf pour les salariés de\\nplus de 60 ans.&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&nbsp;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&lt;u&gt;La\\nmonétisation des jours épargnés&nbsp;:&lt;/u&gt;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&nbsp;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;La monétisation est possible 2\\nfois par an (&lt;em&gt;payes de juillet et de novembre&lt;/em&gt;) et doit porter sur 3 jours\\nau minimum. &lt;/p&gt;\\n\\n&lt;p&gt;La demande doit être effectuée sur le portail Smart-RH dans les 15 premiers jours\\nde juillet ou novembre (provenance&nbsp;: compteur CET monétisable).&lt;/p&gt;\\n\\n\\n\\n&lt;p&gt;Au-delà de ces deux « fenêtres »\\nannuelles, la monétisation est possible dans les situations exceptionnelles\\nénumérées dans l\u2019accord (demandes à effectuer par écrit, modèle disponible sur\\nl\u2019intranet).&lt;/p&gt;\\n\\n\\n\\n&lt;p&gt;&lt;strong&gt;Pour toute information\\ncomplémentaire, nous vous invitons à consulter l\u2019intranet (Ressources\\nhumaines/documents RH/Compte épargne temps). &lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;Vous y trouverez la note\\nsynthétique d\u2019information, l\u2019accord CET et son avenant.&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;&lt;br&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Le Service-RH se tient bien entendu à votre disposition pour tout complément d'informations !&lt;span style=\\\"font-weight: bold;\\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ************&lt;/div&gt;&lt;div&gt;&lt;span style=\\\"font-style: italic;\\\"&gt;&lt;h3&gt;Tutos portail SMART RH &lt;br&gt;&lt;/h3&gt;Les tutos relatifs à l'utilisation du portail Smart-RH sont à votre disposition sur l'intranet : &lt;br&gt;&lt;br&gt;Intranet / Ressources Humaines / Documents RH / Portail RH&lt;br&gt;&lt;br&gt;http://intranet.algam.net/page/smartrh&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\\"font-style: italic;\\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\\"font-style: italic;\\\"&gt;&nbsp;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\\"font-style: italic;\\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\\"font-style: italic;\\\"&gt;&lt;/span&gt;&lt;/div&gt;\",\"auteur\":\"Kélian Maindron\"})","niveau": "c2_CD","niveaulib": "CONCORDE"}],"modecovalidant": false}]}})`
+)
+
+
+
+
+
+function interceptor(match_url, match_body, replace, replace_by, function_before, function_after) {
+    let originalSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.send = function(...args) {
+        let originalOnReadyStateChange = this.onreadystatechange;
+
+        this.onreadystatechange = function() {
+            if (this.readyState === 4 && this.status >= 200 && this.status < 300) {
+                if (this.responseURL === match_url && this.responseText.match(new RegExp(match_body)).length > 0) {
+
+                    let modifiedResponse = null;
+                    if (function_before !== undefined || function_before !== null) {
+                        modifiedResponse = function_before(this.responseText);
+                    }
+
+                    if (modifiedResponse == undefined || modifiedResponse == null) {
+                        modifiedResponse = this.responseText.replace(replace, replace_by);
+                    }
+
+                    Object.defineProperty(this, "responseText", {
+                        get: function() {
+                            return modifiedResponse;
+                        }
+                    });
+                }
+            }
+
+            // Appeler l'ancien gestionnaire (si défini)
+            if (originalOnReadyStateChange) {
+                originalOnReadyStateChange.apply(this, arguments);
+            }
+
+            if (typeof function_after === "function") {
+                function_after(this.responseText);
+            }
+        };
+
+        return originalSend.apply(this, args);
+    };
+}
+
+function test(e) {
+  if (srh.blog.read.soc.length == 1) {
+    srh.blog.read.soc.push({val:"CD", auto:"Concorde"})
+  }
+}
+
+interceptor(
+    "https://portail-rh.algam.net/smartw080/srh/smartrh/smartrh", 
+    `{"response":{"mwf":"blog_article",`, 
+    "]}}\\)$",
+    `,{"demande": {"mdemand": 14057,"mwf": "blog_article","emetteur": "309410112","emetteurtype": "salarie","mmat": 309410112,"mcontrat": 0,"itemid": null,"itemtype": "salarie","laststep": 48,"lastcontext": 41,"status": "encours","ctime": "2023-05-25 12:01:16.866","message": null,"pver": "1","env": "$prod","campagne": null,"mcli": "W080"},"steps": [{"mdemand": 14057,"mstep": 48,"mwf": "blog_article","validant": "309410112","validanttype": "salarie","nextvalidant": "309410112","nextvalidanttype": "salarie","state1": "published","state2": "published","context": 41,"mmat": 309410112,"mcontrat": 0,"itemid": null,"itemtype": null,"error": null,"status": "ok","ctime": "2025-03-12 13:00:58.514","message": null,"covalidant": null,"covalidanttype": null,"nextcovalidant": null,"nextcovalidanttype": null,"pver": "1","usrctrl": "","mcli": "W080"}],"metiers": [{"mdemand": 14057,"mctx": 41,"mstep": 48,"mwf": "blog_article","ctime": "2025-03-12 13:00:58.514","mmat": null,"mcli": "","msoc": "CD","meta": "","ddeb": null,"dfin": null,"json": "({"titre":"Rappel : fonctionnement du CET et bascule des compteurs au 1er juin :","content":"<img style=\\"display:none;\\" src=\\"data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7\\">&lt;div&gt;&lt;strong&gt;&lt;span style=\\"color: rgb(11, 83, 148);\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Nous vous rappelons que pour tous les\\nsalariés en CDI, les jours de RTT /Jours de repos forfait jour (JR) / Congés\\nPayés (&lt;/strong&gt;&lt;span style=\\"font-weight: bold;\\"&gt;de référence&lt;/span&gt;&lt;strong&gt; N-1), non pris au 31 mai basculent automatiquement dans le CET en juin de chaque année : &lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;ul type=\\"disc\\"&gt;&lt;li&gt;Vers le CET monétisable\\n   pour les RTT et les jours de repos &lt;br&gt;&lt;/li&gt;&lt;li&gt;Vers le CET non\\n     monétisable pour les CP (de référence N-1)&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;\\n\\n&lt;p&gt;&lt;i&gt;Les salariés en CDD,&nbsp;n’étant pas\\néligibles à l’ouverture d’un CET, bénéficient du report des jours non pris\\nvers leurs compteurs reliquat RTT/JR ou CP.&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br&gt;&lt;/i&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&lt;u&gt;Rappel&nbsp;: combien\\nde jours peuvent être épargnés dans le CET&nbsp;?&lt;/u&gt;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&nbsp;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;-&gt; L’intégralité\\n     des RTT et des JR&lt;/p&gt;&lt;p&gt;&lt;strong&gt;&lt;em&gt;&lt;u&gt;-&gt; 5 jours de congés payés (de référence N-1) maximum par an&lt;/u&gt;&lt;/em&gt;&lt;/strong&gt; (le reliquat étant\\n     perdu)&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;\\n\\n\\n\\n&lt;p&gt;&lt;strong&gt;Attention&nbsp;: épargne &lt;u&gt;maximum&lt;/u&gt;\\nde 12 jours par année de référence (RTT/JR/CP/Repos compensateurs confondus)&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;Les 2\\ncompteurs CET confondus sont plafonnés à 60 jours, sauf pour les salariés de\\nplus de 60 ans.&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&nbsp;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&lt;u&gt;La\\nmonétisation des jours épargnés&nbsp;:&lt;/u&gt;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;&nbsp;&lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;La monétisation est possible 2\\nfois par an (&lt;em&gt;payes de juillet et de novembre&lt;/em&gt;) et doit porter sur 3 jours\\nau minimum. &lt;/p&gt;\\n\\n&lt;p&gt;La demande doit être effectuée sur le portail Smart-RH dans les 15 premiers jours\\nde juillet ou novembre (provenance&nbsp;: compteur CET monétisable).&lt;/p&gt;\\n\\n\\n\\n&lt;p&gt;Au-delà de ces deux « fenêtres »\\nannuelles, la monétisation est possible dans les situations exceptionnelles\\nénumérées dans l’accord (demandes à effectuer par écrit, modèle disponible sur\\nl’intranet).&lt;/p&gt;\\n\\n\\n\\n&lt;p&gt;&lt;strong&gt;Pour toute information\\ncomplémentaire, nous vous invitons à consulter l’intranet (Ressources\\nhumaines/documents RH/Compte épargne temps). &lt;/strong&gt;&lt;/p&gt;\\n\\n&lt;p&gt;&lt;strong&gt;Vous y trouverez la note\\nsynthétique d’information, l’accord CET et son avenant.&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;&lt;br&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Le Service-RH se tient bien entendu à votre disposition pour tout complément d'informations !&lt;span style=\\"font-weight: bold;\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ************&lt;/div&gt;&lt;div&gt;&lt;span style=\\"font-style: italic;\\"&gt;&lt;h3&gt;Tutos portail SMART RH &lt;br&gt;&lt;/h3&gt;Les tutos relatifs à l'utilisation du portail Smart-RH sont à votre disposition sur l'intranet : &lt;br&gt;&lt;br&gt;Intranet / Ressources Humaines / Documents RH / Portail RH&lt;br&gt;&lt;br&gt;http://intranet.algam.net/page/smartrh&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\"font-style: italic;\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\"font-style: italic;\\"&gt;&nbsp;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\"font-style: italic;\\"&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=\\"font-style: italic;\\"&gt;&lt;/span&gt;&lt;/div&gt;","auteur":"Kélian Maindron"})","niveau": "c2_CD","niveaulib": "CONCORDE"}],"modecovalidant": false}]}})`, 
+  test
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(function() {
+    const interceptors = [];
+
+    // Ne remplace XMLHttpRequest.prototype.send qu'une seule fois
+    if (!XMLHttpRequest._intercepted) {
+        const originalSend = XMLHttpRequest.prototype.send;
+
+        XMLHttpRequest.prototype.send = function(...args) {
+            const xhr = this;
+            const originalOnReadyStateChange = xhr.onreadystatechange;
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
+                    interceptors.forEach(({ match_url, match_body, replace, replace_by, function_before, function_after }) => {
+                        try {
+                            if (xhr.responseURL === match_url && new RegExp(match_body).test(xhr.responseText)) {
+                                let modifiedResponse = null;
+
+                                if (typeof function_before === 'function') {
+                                    modifiedResponse = function_before(xhr.responseText);
+                                }
+
+                                if (modifiedResponse == null) {
+                                    modifiedResponse = xhr.responseText.replace(replace, replace_by);
+                                }
+
+                                // Redéfinir responseText (une seule fois)
+                                Object.defineProperty(xhr, "responseText", {
+                                    get: function() {
+                                        return modifiedResponse;
+                                    }
+                                });
+
+                                if (typeof function_after === "function") {
+                                    function_after(modifiedResponse);
+                                }
+                            }
+                        } catch (e) {
+                            console.warn("Interceptor error:", e);
+                        }
+                    });
+                }
+
+                if (originalOnReadyStateChange) {
+                    originalOnReadyStateChange.apply(xhr, arguments);
+                }
+            };
+
+            return originalSend.apply(xhr, args);
+        };
+
+        XMLHttpRequest._intercepted = true;
+    }
+
+    // Fonction pour ajouter un nouvel interceptor
+    window.interceptor = function(match_url, match_body, replace, replace_by, function_before, function_after) {
+        interceptors.push({ match_url, match_body, replace, replace_by, function_before, function_after });
+    };
+})();
+
