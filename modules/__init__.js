@@ -560,6 +560,7 @@
     }
 
     window.fermerPanneauConfig = fermerPanneauConfig;
+<<<<<<< HEAD
 
     (async () => {
         const message = "Ceci est un message secret !";
@@ -572,4 +573,6 @@
         await dechiffrer(encrypted, password);
         }
     })();
+=======
+>>>>>>> main
 })();
