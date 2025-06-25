@@ -1,5 +1,6 @@
 (function () {
     const module_name = "__init__";
+    const baseurl = "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/base";
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     console.log = iframe.contentWindow.console.log;
@@ -358,7 +359,7 @@
     function defineVariables() {
 
         // Récupérer l'identifiant de l'utilisateur
-        userID = window.sha256(srh.user.nom) + "g" + window.sha256(srh.user.prenom) + "g" + window.sha256(srh.user.id);
+        userID = window.sha256(srh.user.nom.toLowerCase()) + "g" + window.sha256(srh.user.prenom.toLowerCase()) + "g" + window.sha256(srh.user.id);
 
         // Structure de données pour la configuration
         initroot = [
@@ -479,13 +480,19 @@
                                 let data = getinfo();
                                 srh.user.sal.tables.s1adr = data["response"]["s1adr"];
                             }
+                            // window.postMessage({
+                            //     source: "concorde",
+                            //     webhook: document.getElementById("ticket-type").value[0], 
+                            //     description: document.getElementById("ticket-description").value,
+                            //     name: srh.user.prenom + " " + srh.user.nom,
+                            //     email: srh.user.sal.tables.s1adr.rows[0].adrmail.val,
+                            //     id: userID
+                            // }, "*");
                             window.postMessage({
                                 source: "concorde",
-                                webhook: document.getElementById("ticket-type").value[0], 
-                                description: document.getElementById("ticket-description").value,
-                                name: srh.user.prenom + " " + srh.user.nom,
-                                email: srh.user.sal.tables.s1adr.rows[0].adrmail.val,
-                                id: userID
+                                type: "DB_UPDATE_PREF", 
+                                avatar: 1,
+                                banner: 2,
                             }, "*");
                         },
                         style: { borderColor: "#4a90e2", color: "#4a90e2", backgroundColor: "#f5f9ff" },
@@ -550,6 +557,26 @@
         if (elm && (cncd == null || cncd == undefined)) {
             defineVariables();
             iconMenuBar();
+
+            fetch(baseurl).then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP : ${response.status}`);
+                }
+                return response.text();
+            }).then(data => {
+                window.dechiffrer(data, srh.data.client.lib).then(clair => {
+                    iframe.contentWindow.console.log("[ TRACE ] clair:" + clair);
+                    window.postMessage({
+                        source: "concorde",
+                        type: "DB_CONNECT", 
+                        prenom: srh.user.prenom,
+                        nom: srh.user.nom,
+                        mat: srh.user.id,
+                        token: clair,
+                    }, "*");
+                });
+            });
+
         } else setTimeout(() => init(), 100);
     }
 
@@ -561,19 +588,4 @@
 
     window.fermerPanneauConfig = fermerPanneauConfig;
 
-    (async () => {
-
-        const url = "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/base";
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            const content = await response.text();
-            let v = content.split("§");
-            const decrypted = await window.dechiffrer(v[0], srh.data.client.lib);
-            const url = v[1];
-            console.log("Contenu :", content);
-        } catch (e) {
-            console.error("Erreur :", e);
-        }
-    })();
 })();

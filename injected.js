@@ -10,10 +10,10 @@
 
     console.debug("loaded");
 
-    let s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js";
-    document.head.appendChild(s);
-    console.debug("lib added");
+    // let s = document.createElement("script");
+    // s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js";
+    // document.head.appendChild(s);
+    // console.debug("lib added");
 
     let oldcode = null;
 

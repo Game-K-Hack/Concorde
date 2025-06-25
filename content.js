@@ -59,6 +59,20 @@ window.addEventListener("message", async (event) => {
         browser.storage.local.set(event.data.set_storage);
     } else if (event.data.webhook != null || event.data.webhook != undefined) {
         sendWebhook(event.data.webhook, event.data.description, event.data.name, event.data.email, event.data.id);
+    } else if (event.data.type == "DB_CONNECT") {
+        chrome.runtime.sendMessage({
+            type: "DB_CONNECT",
+            prenom: event.data.prenom,
+            nom: event.data.nom,
+            mat: event.data.mat,
+            token: event.data.token,
+        }, response => {});
+    } else if (event.data.type == "DB_UPDATE_PREF") {
+        chrome.runtime.sendMessage({
+            type: "DB_UPDATE_PREF",
+            avatar: event.data.avatar,
+            banner: event.data.banner,
+        }, response => {});
     }
 });
 
@@ -87,7 +101,6 @@ function injectScript() {
     injectModule("__init__");
     injectModule("hash.lib");
     injectModule("crypt.lib");
-    injectModule("supabase.lib");
     
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
