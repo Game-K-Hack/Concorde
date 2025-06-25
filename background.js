@@ -95,6 +95,103 @@ function sha256(ascii) {
     return result;
 };
 
+class PostgresLib {
+    constructor() {
+        this.id = null;
+        this.mat = null;
+        this.nom = null;
+        this.prenom = null;
+        this.avatar = null;
+        this.banner = null;
+        this.client = null;
+    }
+
+    async connect(prenom, nom, mat, token) {
+        this.mat = sha256(mat);
+        this.nom = sha256(nom.toLowerCase());
+        this.prenom = sha256(prenom.toLowerCase());
+
+        token = token.split("§");
+
+        this.client = new Client({
+            user: token[0],
+            host: token[1],
+            database: token[2],
+            password: token[3],
+            port: 5432,
+        });
+
+        this.client.connect();
+
+        this.id = await this.update(this.prenom, this.nom, this.mat);
+    }
+
+    async update(prenom, nom, mat) {
+        try {
+            let res = await this.client.query("SELECT * FROM \"user\" WHERE mat = $1 AND nom = $2", [mat, nom]);
+            if (res.rows.length > 0) {
+                await this.client.query("UPDATE \"user\" SET prenom = $1 WHERE id = $2", [prenom, res.rows[0].id]);
+                return res.rows[0].id;
+            }
+
+            res = await this.client.query("SELECT * FROM \"user\" WHERE prenom = $1 AND nom = $2", [prenom, nom]);
+            if (res.rows.length > 0) {
+                await this.client.query("UPDATE \"user\" SET mat = $1 WHERE id = $2", [mat, res.rows[0].id]);
+                return res.rows[0].id;
+            }
+
+            res = await this.client.query("SELECT * FROM \"user\" WHERE mat = $1 AND prenom = $2", [mat, prenom]);
+            if (res.rows.length > 0) {
+                await this.client.query("UPDATE \"user\" SET nom = $1 WHERE id = $2", [nom, res.rows[0].id]);
+                return res.rows[0].id;
+            }
+
+            res = await this.client.query("INSERT INTO \"user\" (prenom, nom, mat) VALUES ($1, $2, $3) RETURNING id", [prenom, nom, mat]);
+            return res.rows[0].id;
+
+        } catch (error) {
+            console.error("Erreur dans update :", error.message);
+            return null;
+        }
+    }
+
+    async updatePref(avatar, banner) {
+        try {
+            const resOld = await this.client.query("SELECT idprofile FROM user_profile WHERE iduser = $1", [this.id]);
+            const oldProfileId = resOld.rows.length ? resOld.rows[0].idprofile : null;
+
+            const resExist = await this.client.query("SELECT id FROM profile WHERE avatar = $1 AND banner = $2", [avatar, banner]);
+            let newProfileId;
+
+            if (resExist.rows.length) {
+                newProfileId = resExist.rows[0].id;
+            } else {
+                const resNew = await this.client.query("INSERT INTO profile (avatar, banner) VALUES ($1, $2) RETURNING id", [avatar, banner]);
+                newProfileId = resNew.rows[0].id;
+            }
+
+            if (oldProfileId !== newProfileId) {
+                if (oldProfileId) {
+                    await this.client.query("DELETE FROM user_profile WHERE iduser = $1 AND idprofile = $2", [this.id, oldProfileId]);
+                }
+
+                await this.client.query("INSERT INTO user_profile (iduser, idprofile) VALUES ($1, $2)", [this.id, newProfileId]);
+
+                const resUsage = await this.client.query("SELECT iduser FROM user_profile WHERE idprofile = $1", [oldProfileId]);
+
+                if (oldProfileId && resUsage.rows.length === 0) {
+                    await this.client.query("DELETE FROM profile WHERE id = $1", [oldProfileId]);
+                    console.log("Ancien profil supprimé car plus utilisé.");
+                }
+            }
+
+            console.log("Mise à jour du profil terminée avec succès.");
+        } catch (error) {
+            console.error("Erreur updatePref :", error.message);
+        }
+    }
+}
+
 class SupabaseLib {
     constructor() {
         this.id = null;
