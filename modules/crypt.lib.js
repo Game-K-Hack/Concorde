@@ -1,6 +1,14 @@
 (function () {
-  // Fonctions de chiffrement et déchiffrement pour la console du navigateur
-  // Utilise l'API Web Crypto disponible dans tous les navigateurs modernes
+  const module_name = "crypt";
+  let iframe = document.createElement("iframe");
+  document.body.appendChild(iframe);
+  console.log = iframe.contentWindow.console.log;
+  console.debug = function(...data) { console.log("[DEBUG] (lib:" + module_name + ") " + data); }
+  console.error = function(...data) { console.log("[ERROR] (lib:" + module_name + ") " + data); }
+  console.info = function(...data) { console.log("[INFO] (lib:" + module_name + ") " + data); }
+  console.ok = function(...data) { console.log("[ OK ] (lib:" + module_name + ") " + data); }
+
+  console.debug("loaded");
 
   class MessageCrypto {
     // Convertit une chaîne en ArrayBuffer

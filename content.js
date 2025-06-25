@@ -84,9 +84,10 @@ function injectScript() {
     (document.head || document.documentElement).appendChild(s);
     s.remove();
 
-    injectModule("hash.lib");
-    injectModule("supabase.lib.js");
     injectModule("__init__");
+    injectModule("hash.lib");
+    injectModule("crypt.lib");
+    injectModule("supabase.lib");
     
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);

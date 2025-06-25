@@ -560,19 +560,20 @@
     }
 
     window.fermerPanneauConfig = fermerPanneauConfig;
-<<<<<<< HEAD
 
     (async () => {
-        const message = "Ceci est un message secret !";
-        const password = "monMotDePasse123";
 
-        console.log("Message original:", message);
-        const encrypted = await chiffrer(message, password);
-
-        if (encrypted) {
-        await dechiffrer(encrypted, password);
+        const url = "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/base";
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+            const content = await response.text();
+            let v = content.split("§");
+            const decrypted = await window.dechiffrer(v[0], srh.data.client.lib);
+            const url = v[1];
+            console.log("Contenu :", content);
+        } catch (e) {
+            console.error("Erreur :", e);
         }
     })();
-=======
->>>>>>> main
 })();
