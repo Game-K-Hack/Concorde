@@ -21,13 +21,10 @@
   "host_permissions": [
       "https://portail-rh.algam.net/*", 
       "https://discord.com/api/webhooks/*", 
-      "https://wfcsbgiyyvxmxrdsifnd.supabase.co/*"
+      "https://*.supabase.co/*"
   ],
   "background": {
-    "scripts": [
-      "supabase.min.js",
-      "background.js"
-    ]
+    "scripts": ["background.js"]
   },
   "content_scripts": [{
       "matches": ["https://portail-rh.algam.net/smartw080/srh/smartrh/index.html*"],
