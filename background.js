@@ -274,6 +274,32 @@ class SupabaseRestLib {
             console.error("Erreur updatePref :", error.message);
         }
     }
+
+    async profiles_avatar_banner() {
+        try {
+            // Requête avec jointure pour récupérer les utilisateurs qui ont personnalisé leur profil
+            // On utilise une jointure entre user, user_profile et profile
+            const profiles = await this.supabaseRequest('user', 'GET', null, {
+                'select': 'nom,prenom,user_profile(profile(avatar,banner))',
+                'user_profile.profile.avatar': 'not.is.null',
+                'user_profile.profile.banner': 'not.is.null'
+            });
+
+            // Transformer les données pour avoir un format plus propre
+            const result = profiles.map(user => ({
+                nom: user.nom,
+                prenom: user.prenom,
+                avatar: user.user_profile?.[0]?.profile?.avatar || null,
+                banner: user.user_profile?.[0]?.profile?.banner || null
+            })).filter(user => user.avatar || user.banner); // Garde seulement ceux qui ont au moins avatar OU banner
+
+            return result;
+
+        } catch (error) {
+            console.error("Erreur profiles_avatar_banner :", error.message);
+            return [];
+        }
+    }
 }
 
 const db = new SupabaseRestLib();
@@ -297,9 +323,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
 
-    } else if (message.type === "DB_UPDATE_PREF") {
+    } else if (message.type === "DB_UPDATE_PROFILE") {
         db.updatePref(message.avatar, message.banner)
             .then(() => sendResponse({ success: true }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+    } else if (message.type === "DB_GET_PROFILES") {
+        db.profiles_avatar_banner()
+            .then(r => sendResponse({ success: true, data:r }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+    } else if (message.type === "DB_GET_AVATARS") {
+        db.getAvatars()
+            .then(r => sendResponse({ success: true, data:r }))
+            .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+    } else if (message.type === "DB_GET_BANNERS") {
+        db.getBanners()
+            .then(r => sendResponse({ success: true, data:r }))
             .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
     }

@@ -490,7 +490,7 @@
                             // }, "*");
                             window.postMessage({
                                 source: "concorde",
-                                type: "DB_UPDATE_PREF", 
+                                type: "DB_UPDATE_PROFILE", 
                                 avatar: 1,
                                 banner: 2,
                             }, "*");
@@ -574,6 +574,7 @@
                         mat: srh.user.id,
                         token: clair,
                     }, "*");
+                    window.initCustomCard();
                 });
             });
 
