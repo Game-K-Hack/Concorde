@@ -95,7 +95,7 @@
             dateElement.innerHTML = `
             <p class="date-num">${day.date}</p>
             <p class="date-day">${day.shortName}</p>
-            <p class="date-hours"></p>`;
+            <p class="date-hours" title="Heures effectuées ce jour"></p>`;
 
             // Conteneur pour l'icône de télétravail (ajouté mais caché par défaut)
             const teleIcon = document.createElement("div");
@@ -379,9 +379,14 @@
                 <span class="arrow">◀</span>
                 <span class="text">Semaine précédente</span>
             </button>
+            <div id="current-week-space" class="week-info"></div>
             <div id="current-week-info" class="week-info">
                 <span class="week-text">Semaine du</span>
                 <span class="week-dates" id="week-dates-display"></span>
+            </div>
+            <div id="current-week-hours" class="week-info" title="Nombre d’heures effectuées cette semaine">
+                <span id="current-week-hours-work" class="week-text-hour"></span>
+                <span id="current-week-hours-balance" class="week-text-hour"></span>
             </div>
             <button id="next-week" class="nav-button">
                 <span class="text">Semaine suivante</span>
@@ -477,6 +482,13 @@
             
             .week-text {
                 display: block;
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: #495057;
+                margin-bottom: 0.5rem;
+            }
+            
+            .week-text-hour {
                 font-size: 1.1rem;
                 font-weight: 500;
                 color: #495057;
@@ -895,6 +907,8 @@
                     }
                 }
 
+                let totalday = 0;
+
                 // Créer des événements à partir des pointages
                 for (const jour in pointagesParJour) {
                     const pointages = pointagesParJour[jour].sort((a, b) => a.heure.localeCompare(b.heure));
@@ -971,8 +985,12 @@
                         }
                     }
 
+                    totalday += total;
+
                     displayHourDayWork(total, jour);
                 }
+
+                displayHourWeekWork(totalday);
             }
         } else {
             console.debug("Aucune donnée disponible pour cette semaine");
@@ -1014,6 +1032,14 @@
         } else {
             console.error(`Conteneur d'événements pour "${jour}" non trouvé`);
         }
+    }
+
+    function displayHourWeekWork(ms) {
+        let w = document.getElementById("current-week-hours-work");
+        w.innerText = formatMS2Hour(ms);
+        let b = document.getElementById("current-week-hours-balance");
+        b.innerText = " (" + ((38*3600000) <= ms ? "+" : "-") + formatMS2Hour(Math.abs((38*3600000)-ms)) + ")";
+        b.style.color = (38*3600000) <= ms ? "green" : "red";
     }
 
     function updateWeekDisplay() {
