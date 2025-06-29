@@ -94,7 +94,8 @@
             dateElement.className = "date";
             dateElement.innerHTML = `
             <p class="date-num">${day.date}</p>
-            <p class="date-day">${day.shortName}</p>`;
+            <p class="date-day">${day.shortName}</p>
+            <p class="date-hours"></p>`;
 
             // Conteneur pour l'icône de télétravail (ajouté mais caché par défaut)
             const teleIcon = document.createElement("div");
@@ -419,6 +420,7 @@
             .date {display: flex;gap: 1em;position: relative;}
             .date-num {font-size: 3rem;font-weight: 600;display: inline;}
             .date-day {display: inline;font-size: 3rem;font-weight: 100;}
+            .date-hours {margin-top: auto;margin-bottom: 5px;margin-left: auto;margin-right: 10px;display: inline;font-size: 1rem;font-weight: 100;}
             .event {transition: all 0.3s ease;}
             .event:hover {transform: scale(1.02);box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);z-index: 10;}
             .time-marker {height: var(--timeHeight);display: flex;align-items: center;}
@@ -820,7 +822,8 @@
                     pointagesParJour[jourSemaine].push({
                         date: datePointage,
                         heure: heurePointage.substring(0, 5).replace(':', 'h'),  // Format 08:46 -> 08h46
-                        isToday: datePointage === jourActuel
+                        isToday: datePointage === jourActuel, 
+                        timestamp: dateObj.getTime()
                     });
                 });
                 
@@ -896,6 +899,8 @@
                 for (const jour in pointagesParJour) {
                     const pointages = pointagesParJour[jour].sort((a, b) => a.heure.localeCompare(b.heure));
 
+                    let total = 0;
+
                     // Garder une référence aux pointages originaux pour les détails
                     const pointagesOriginaux = respData.cpointagereel.rows.filter(p => {
                         const datePointage = p.datecorr.val;
@@ -906,8 +911,9 @@
 
                     // Parcourir tous les pointages et créer des paires
                     for (let i = 0; i < pointages.length; i++) {
-                        const heureDebut = pointages[i].heure;
+                        let heureDebut = pointages[i].heure;
                         let heureFin = null;
+                        let timestampFin = null;
                         
                         // Gérer différents cas
                         if (i % 2 === 0) { // Pointage d'entrée (position paire dans la liste)
@@ -918,6 +924,7 @@
                             // S'il y a un pointage suivant, c'est l'heure de fin
                             else if (i + 1 < pointages.length) {
                                 heureFin = pointages[i + 1].heure;
+                                timestampFin = pointages[i + 1].timestamp;
                             }
                             // S'il n'y a pas de pointage suivant et ce n'est pas aujourd'hui
                             else if (!pointages[i].isToday || currentWeekOffset !== 0) {
@@ -959,12 +966,53 @@
                                 "bleu",
                                 pointagesPeriode
                             );
+
+                            total += timestampFin - pointages[i].timestamp;
                         }
                     }
+
+                    displayHourDayWork(total, jour);
                 }
             }
         } else {
             console.debug("Aucune donnée disponible pour cette semaine");
+        }
+    }
+
+    function formatMS2Hour(ms) {
+        const totalMinutes = Math.floor(ms / 60000); // Convertir en minutes
+        const heures = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
+        // Ajouter un zéro devant si nécessaire
+        const heuresStr = heures.toString().padStart(2, '0');
+        const minutesStr = minutes.toString().padStart(2, '0');
+
+        return `${heuresStr}h${minutesStr}`;
+    }
+
+    function displayHourDayWork(ms, jour) {
+        // Vérifier si le jour existe
+        if (config.days.findIndex((d) => d.name.toLowerCase() === jour.toLowerCase()) === -1) {
+            console.error(`Le jour "${jour}" n'existe pas dans le calendrier`);
+            return;
+        }
+
+        // Ajouter l'événement au jour correspondant
+        const dayEventsContainer = document.getElementById(`day-${jour.toLowerCase()}`);
+        if (dayEventsContainer) {
+            const elm = dayEventsContainer.querySelector(`div[class="date"] p[class="date-hours"]`);
+            if (elm) {
+                const w = formatMS2Hour(ms);
+                const b = formatMS2Hour(Math.abs(((38/5)*3600000)-ms));
+                const s = ((38/5)*3600000) <= ms ? "+" : "-";
+                const c = ((38/5)*3600000) <= ms ? "green" : "red";
+                elm.innerHTML = `${w} <span style="color:${c}">(${s}${b})</span>`;
+            } else {
+            console.error(`Conteneur d'événements (div[class="date-hours"]) pour "${jour}" non trouvé`);
+            }
+        } else {
+            console.error(`Conteneur d'événements pour "${jour}" non trouvé`);
         }
     }
 
