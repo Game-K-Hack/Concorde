@@ -99,7 +99,7 @@
             // Conteneur pour l'icône de télétravail (ajouté mais caché par défaut)
             const teleIcon = document.createElement("div");
             teleIcon.className = "teletravail-icon";
-            teleIcon.innerHTML = `<span class="icon">💻</span>`;
+            teleIcon.innerHTML = `<span class="icon" title="Télétravail">💻</span>`;
             teleIcon.style.display = "none";
             dateElement.appendChild(teleIcon);
 
@@ -527,7 +527,6 @@
                 top: 70px;
                 right: 5px;
                 font-size: 1.5rem;
-                animation: pulse 2s infinite;
                 z-index: 1;
             }
             @keyframes pulse {
@@ -674,7 +673,7 @@
             dateHeader.innerHTML = `
                 <div class="date-num">${dayNumber}</div>
                 <div class="date-day">${dayName}</div>
-                <div class="teletravail-icon" style="display:none;"><span class="icon">💻</span></div>
+                <div class="teletravail-icon" style="display:none;"><span class="icon" title="Télétravail">💻</span></div>
             `;
 
             // Conteneur pour les événements
@@ -783,16 +782,13 @@
                     // console.debug("Nombre de pointages trouvés: " + pointagesData.length);
                 }
                 
-                // Récupérer les absences (congés)
-                if (respData.cabsenceuser && respData.cabsenceuser.rows) {
-                    absencesData = respData.cabsenceuser.rows;
-                    // console.debug("Nombre d'absences trouvées: " + absencesData.length);
-                }
-                
-                // Récupérer le télétravail
-                if (respData.cteletravail && respData.cteletravail.rows) {
-                    teletravailData = respData.cteletravail.rows;
-                    // console.debug("Nombre de télétravails trouvés: " + teletravailData.length);
+                // Récupérer les absences (congés) & télétravail
+                if (respData.cabs && respData.cabs.rows) {
+                    window.tempoVar = respData.cabs.rows;
+                    absencesData = respData.cabs.rows.filter(row => ["CONGP", "CETM", "ABRTT", "MALAH", "ABMTM", "MALAD"].includes(row.mmotif.val));
+                    console.debug("Nombre d'absences trouvées: " + absencesData.length);
+                    teletravailData = respData.cabs.rows.filter(row => row.mmotif.val == "TTRV");
+                    console.debug("Nombre de TT trouvées: " + teletravailData.length);
                 }
                 
                 // Détecter les oublis de pointage
@@ -841,10 +837,19 @@
                 // Traiter les jours de télétravail
                 if (teletravailData && teletravailData.length > 0) {
                     teletravailData.forEach(tele => {
-                        const dateTele = tele.date.val;
-                        if (estDansPlageActuelle(dateTele)) {
-                            const jourSemaine = getJourSemaine(dateTele);
-                            markAsTeletravail(jourSemaine);
+                        const dateDebut = tele.ddeb.val;
+                        const dateFin = tele.dfin.val;
+                        
+                        // Créer une boucle pour couvrir toute la période de télétravail
+                        const debut = new Date(dateDebut);
+                        const fin = new Date(dateFin);
+                        
+                        for (let d = new Date(debut); d <= fin; d.setDate(d.getDate() + 1)) {
+                            const dateStr = d.toISOString().split('T')[0];
+                            if (estDansPlageActuelle(dateStr)) {
+                                const jourSemaine = getJourSemaine(dateStr);
+                                markAsTeletravail(jourSemaine);
+                            }
                         }
                     });
                 }
@@ -852,9 +857,9 @@
                 // Traiter les congés et absences
                 if (absencesData && absencesData.length > 0) {
                     absencesData.forEach(absence => {
-                        const dateDebut = absence.datedeb.val;
-                        const dateFin = absence.datefin.val;
-                        const libelle = absence.libelle ? absence.libelle.val : "Congé";
+                        const dateDebut = absence.ddeb.val;
+                        const dateFin = absence.dfin.val;
+                        const libelle = absence.name ? absence.name.val : "Congé";
                         
                         // Créer une boucle pour couvrir toute la période d'absence
                         const debut = new Date(dateDebut);
@@ -1059,7 +1064,7 @@
                 "popu":[[srh.user.id,1]],
                 "ddeb":formatDate(week.monday),
                 "dfin":formatDate(week.sunday),
-                "tables":["cpointagereel"],
+                "tables":["cpointagereel", "cabs"],
                 "lastResult":true,
                 "headerrows":true,
                 "byday":false,
