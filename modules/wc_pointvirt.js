@@ -1,12 +1,16 @@
 (function () {
     const module_name = "wc_pointvirt";
-    let iframe = document.createElement("iframe");
-    document.body.appendChild(iframe);
+    let iframe = document.getElementById("crd-log");
+    if (iframe == undefined || iframe == null) {
+        iframe = document.createElement("iframe");
+        iframe.id = "crd-log";
+        document.body.appendChild(iframe);
+    }
     console.log = iframe.contentWindow.console.log;
-    console.debug = function(...data) { console.log("[DEBUG] (module:" + module_name + ") " + data); }
-    console.error = function(...data) { console.log("[ERROR] (module:" + module_name + ") " + data); }
-    console.info = function(...data) { console.log("[INFO] (module:" + module_name + ") " + data); }
-    console.ok = function(...data) { console.log("[ OK ] (module:" + module_name + ") " + data); }
+    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
 
     console.debug("loaded");
 
@@ -42,6 +46,8 @@
     const joursFeries = getHolidays();
 
     let currentWeekOffset = 0; // 0 = semaine actuelle, -1 = semaine précédente, +1 = semaine suivante
+
+    let dataWeek = {};
 
     // Fonction pour initialiser le calendrier
     function initCalendar() {
@@ -869,6 +875,8 @@
                     });
                 }
 
+                let absenceCount = 0;
+
                 // Traiter les congés et absences
                 if (absencesData && absencesData.length > 0) {
                     absencesData.forEach(absence => {
@@ -885,6 +893,7 @@
                             if (estDansPlageActuelle(dateStr)) {
                                 const jourSemaine = getJourSemaine(dateStr);
                                 markAsConge(jourSemaine, libelle);
+                                absenceCount += 1;
                             }
                         }
                     });
@@ -904,6 +913,7 @@
                     const ferie = joursFeries[jourDate.toISOString().split('T')[0]];
                     if (ferie) {
                         markAsFerie(jour.name, ferie["name"], ferie["image"]);
+                        absenceCount += 1;
                     }
                 }
 
@@ -981,6 +991,10 @@
                                 pointagesPeriode
                             );
 
+                            if (timestampFin == null || timestampFin == undefined) {
+                                timestampFin = new Date();
+                            }
+
                             total += timestampFin - pointages[i].timestamp;
                         }
                     }
@@ -990,7 +1004,10 @@
                     displayHourDayWork(total, jour);
                 }
 
-                displayHourWeekWork(totalday);
+                let absenceMS = absenceCount * ((38/5)*3600000);
+                let weekMS = (38*3600000) - absenceMS;
+
+                displayHourWeekWork(totalday, weekMS);
             }
         } else {
             console.debug("Aucune donnée disponible pour cette semaine");
@@ -1034,12 +1051,12 @@
         }
     }
 
-    function displayHourWeekWork(ms) {
+    function displayHourWeekWork(ms, weekMS) {
         let w = document.getElementById("current-week-hours-work");
         w.innerText = formatMS2Hour(ms);
         let b = document.getElementById("current-week-hours-balance");
-        b.innerText = " (" + ((38*3600000) <= ms ? "+" : "-") + formatMS2Hour(Math.abs((38*3600000)-ms)) + ")";
-        b.style.color = (38*3600000) <= ms ? "green" : "red";
+        b.innerText = " (" + (weekMS <= ms ? "+" : "-") + formatMS2Hour(Math.abs(weekMS-ms)) + ")";
+        b.style.color = weekMS <= ms ? "green" : "red";
     }
 
     function updateWeekDisplay() {
@@ -1166,8 +1183,8 @@
             xhr.send("ctx=" + getsrhdata(week));
             if (xhr.status == 200) {
                 data = xhr.responseText.slice(1, -1);
-                console.log(data);
                 localStorage.setItem(keydate, data);
+                dataWeek[keydate] = data;
             }
         }
         
@@ -1344,7 +1361,7 @@
     function init() {
         let elm = document.getElementById(`main-tabs`);
         if (elm) {
-            cleanLocalStorage();
+            cleanLocalStorage(true);
             initHTML();
             initEvent();
         } else setTimeout(() => init(), 100);
