@@ -1,14 +1,19 @@
 (function () {
-    const module_name = "wc_pointvirt";
+    const module_name = "planningForConges";
 
     // Redirection console → iframe
-    const iframe = document.createElement("iframe");
-    document.body.appendChild(iframe);
-    const log = iframe.contentWindow.console.log.bind(iframe.contentWindow.console);
-    ["log", "debug", "info", "warn", "error"].forEach((lvl) => {
-        console[lvl] = (...args) => log(`[${lvl.toUpperCase().padEnd(5)}] (${module_name})`, ...args);
-    });
-    console.ok = (...args) => log(`[  OK  ] (${module_name})`, ...args);
+    let iframe = document.getElementById("crd-log");
+    if (iframe == undefined || iframe == null) {
+        iframe = document.createElement("iframe");
+        iframe.id = "crd-log";
+        document.body.appendChild(iframe);
+    }
+    console.log = iframe.contentWindow.console.log;
+    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
+
 
     // Fonction de diagnostic pour vérifier la structure des données
     function diagnoseDataStructure() {

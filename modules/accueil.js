@@ -1,7 +1,16 @@
 (function () {
-    let iframe = document.createElement("iframe");
-    document.body.appendChild(iframe);
-    iframe.contentWindow.console.log("[DEBUG] (module:accueil) loaded");
+    const module_name = "accueil";
+    let iframe = document.getElementById("crd-log");
+    if (iframe == undefined || iframe == null) {
+        iframe = document.createElement("iframe");
+        iframe.id = "crd-log";
+        document.body.appendChild(iframe);
+    }
+    console.log = iframe.contentWindow.console.log;
+    console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
+    console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
+    console.info = function(...data) { console.log("[INFO] (" + module_name + ") " + data); }
+    console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
 
     function setBackground() {
         let elm = document.getElementById(`csAccuielContainer`);
@@ -84,16 +93,7 @@
         }
     }
 
-    function saveHTML() {
-        let content = `<!DOCTYPE html>\n` + document.querySelector("*").outerHTML;
-        let contentbase64 = window.btoa(encodeURIComponent(content));
-        localStorage.setItem("accueiliframe", contentbase64);
-    }
-
-    // let htmlAlreadySave = false;
-
     function init() {
-        // if (!htmlAlreadySave) saveHTML();
         if (document.getElementById("calendar-module")) document.getElementById("calendar-module").remove();
         if (document.getElementById(`csAccuielContainer`) && document.getElementById(`main-tabs`)) {
             setBackground();
