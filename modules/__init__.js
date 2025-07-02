@@ -1,8 +1,13 @@
 (function () {
-    const module_name = "__init__";
     const baseurl = "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/base";
-    let iframe = document.createElement("iframe");
-    document.body.appendChild(iframe);
+    
+    const module_name = "__init__";
+    let iframe = document.getElementById("crd-log");
+    if (iframe == undefined || iframe == null) {
+        iframe = document.createElement("iframe");
+        iframe.id = "crd-log";
+        document.body.appendChild(iframe);
+    }
     console.log = iframe.contentWindow.console.log;
     console.debug = function(...data) { console.log("[DEBUG] (" + module_name + ") " + data); }
     console.error = function(...data) { console.log("[ERROR] (" + module_name + ") " + data); }
@@ -565,7 +570,6 @@
                 return response.text();
             }).then(data => {
                 window.dechiffrer(data, srh.data.client.lib).then(clair => {
-                    iframe.contentWindow.console.log("[ TRACE ] clair:" + clair);
                     window.postMessage({
                         source: "concorde",
                         type: "DB_CONNECT", 
@@ -577,6 +581,12 @@
                     window.initCustomCard();
                 });
             });
+
+            document
+                .querySelector(`div[class="cs-menu-bar-content"] div[data-cy="CsMenuBar-folded-item-accueil"]`)
+                .addEventListener('click', function(e) {
+                    fermerPanneauConfig();
+                });
 
         } else setTimeout(() => init(), 100);
     }
