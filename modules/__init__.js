@@ -199,7 +199,7 @@
                                     param.options.forEach((option) => {
                                         const opt = document.createElement("option");
                                         opt.value = option.toLowerCase().replace(" ", "-");
-                                        opt.textContent = option;
+                                        opt.innerHTML = option;
                                         select.appendChild(opt);
                                     });
 
@@ -361,6 +361,98 @@
         }
     }
 
+    // Fonction pour afficher la popup
+    function showPopup(message, type = "success") {
+        // Supprimer les anciennes popups
+        const existingPopup = document.querySelector('.ticket-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+        
+        // Créer la popup
+        const popup = document.createElement('div');
+        popup.className = 'ticket-popup';
+        popup.innerHTML = message;
+        
+        // Styles de base
+        popup.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+        
+        // Couleurs selon le type
+        if (type === "success") {
+            popup.style.backgroundColor = "#d4edda";
+            popup.style.color = "#155724";
+            popup.style.border = "1px solid #c3e6cb";
+        } else if (type === "error") {
+            popup.style.backgroundColor = "#f8d7da";
+            popup.style.color = "#721c24";
+            popup.style.border = "1px solid #f5c6cb";
+        }
+        
+        // Ajouter au DOM
+        document.body.appendChild(popup);
+        
+        // Animation d'entrée
+        setTimeout(() => {
+            popup.style.transform = "translateX(0)";
+        }, 100);
+        
+        // Suppression automatique après 3 secondes
+        setTimeout(() => {
+            popup.style.transform = "translateX(100%)";
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    popup.parentNode.removeChild(popup);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // Fonction pour afficher le compteur de caractères (optionnel)
+    function updateCharacterCounter() {
+        const description = document.getElementById("ticket-description");
+        if (!description) return;
+        
+        const currentLength = description.value.length;
+        let counter = document.getElementById("ticket-char-counter");
+        
+        if (!counter) {
+            counter = document.createElement('div');
+            counter.id = "ticket-char-counter";
+            counter.style.cssText = `
+                font-size: 12px;
+                color: #666;
+                margin-top: 5px;
+                text-align: right;
+            `;
+            description.parentNode.appendChild(counter);
+        }
+        
+        counter.textContent = `${currentLength}/200 caractères`;
+        
+        if (currentLength < 10) {
+            counter.style.color = "#dc3545";
+        } else if (currentLength > 180) {
+            counter.style.color = "#fd7e14";
+        } else {
+            counter.style.color = "#28a745";
+        }
+    }
+
     function defineVariables() {
 
         // Récupérer l'identifiant de l'utilisateur
@@ -369,98 +461,316 @@
         // Structure de données pour la configuration
         initroot = [
             {
-                title: "Paramètres généraux",
+                title: "Accueil",
                 idaff: {
                     title: "Affichage",
                     idesc: {
                         type: "paragraphe",
                         value: "Modifier les paramètres d'affichage",
                     },
-                    "show-inactive": {
+                    "ew": {
                         type: "checkbox",
-                        label: "Afficher les utilisateurs inactifs",
-                        checked: false,
-                    },
-                    "compact-mode": {
-                        type: "checkbox",
-                        label: "Mode compact",
+                        label: "Activer le widget de temps",
                         checked: true,
                     },
-                    "theme-select": {
+                    "url-bg-image": {
+                        type: "text",
+                        label: "URL de l'image de fond ou la couleur en hexadécimal",
+                        value: "",
+                    },
+                    "to": {
                         type: "select",
-                        label: "Thème",
-                        options: ["Défaut", "Sombre", "Clair", "Personnalisé"],
+                        label: "Taux de transparence des box",
+                        options: ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"],
                     },
                 },
+                idwidget: {
+                    title: "Widget", 
+                    "pw": {
+                        type: "select",
+                        label: "Position du widget",
+                        options: ["1", "2", "3", "3", "4", "5", "6"],
+                    },
+
+                },
                 iddata: {
-                    title: "Données",
+                    title: "Annuire",
                     idesc: {
                         type: "paragraphe",
-                        value: "Paramètres de synchronisation des données",
+                        value: "Personalisé sa bannière et son avatar",
                     },
-                    "auto-sync": {
-                        type: "checkbox",
-                        label: "Synchronisation automatique",
-                        checked: true,
-                    },
-                    "refresh-rate": {
+                    "banner": {
                         type: "select",
-                        label: "Fréquence de rafraîchissement",
+                        label: "Bannière",
                         options: [
-                            "30 secondes",
-                            "1 minute",
-                            "5 minutes",
-                            "15 minutes",
-                            "30 minutes",
-                            "1 heure",
+                            "Lune spirituelle", 
+                            "Poussière d'étoile", 
+                            "Bug", 
+                            "Marée céleste", 
+                            "Chat douillet", 
+                            "Épée de légende", 
+                            "Fleurs de cerisier", 
+                            "Pattoune de chat", 
+                            "Air printanier", 
+                            "Crépuscule", 
+                            "Étang à carpes koi", 
+                            "Vengeance", 
+                            "Paysage urbain", 
+                            "Anges"
                         ],
                     },
-                    "max-items": {
-                        type: "text",
-                        label: "Nombre maximal d'éléments",
-                        value: "100",
+                    "avatar": {
+                        type: "select",
+                        label: "Avatar",
+                        options: [
+                            "Izuku Midoriya", 
+                            "Katsuki Bakugo", 
+                            "Ochaco Uraraka", 
+                            "Shoto Todoroki", 
+                            "Endeavor", 
+                            "Hawks", 
+                            "All Might", 
+                            "Tomura Shigaraki", 
+                            "Goutte de rosée", 
+                            "Bonne récolte", 
+                            "Partie de pêche", 
+                            "L'abeille vie", 
+                            "Ours boulanger", 
+                            "R2-D2 sur Tatooine", 
+                            "BB-8 curieux", 
+                            "Yoda sur Dagobah", 
+                            "Hyperdrive du Faucon Millenium", 
+                            "Bataille spatiale", 
+                            "Copium", 
+                            "À la poubelle", 
+                            "Fan d'herbe", 
+                            "Git Gud", 
+                            "GGEZ", 
+                            "Questionnable", 
+                            "Lapin aux fraises", 
+                            "Ti'croc", 
+                            "Vache donut", 
+                            "Chat donut", 
+                            "Ours donut", 
+                            "Chien brioché", 
+                            "Grenouille glacée", 
+                            "Ours en gelée", 
+                            "Chaton grignoteur", 
+                            "Œuf", 
+                            "Nugget de poulet", 
+                            "Couvercle des toilettes", 
+                            "Mignon tout plein", 
+                            "Chargement en cours…", 
+                            "Rocket Puncher", 
+                            "Got Xenoglossy", 
+                            "Armamenter", 
+                            "E.D Hacker", 
+                            "Port of Soul", 
+                            "Fanlight aespa", 
+                            "Baleines stellaires", 
+                            "Lotus fluorescents", 
+                            "Rêveries", 
+                            "Tremblements", 
+                            "Magical Girl", 
+                            "Uniforme Sakura", 
+                            "Maki", 
+                            "Ange", 
+                            "Démon", 
+                            "D'amour et de flèches", 
+                            "Coup de cœur", 
+                            "Cœurs Ruby", 
+                            "Couronne de laurier d'or", 
+                            "Hexagone doré", 
+                            "Tuiles terrain", 
+                            "Tuiles hexagonales", 
+                            "Murs de la ville", 
+                            "Bouton tour suivant", 
+                            "Câlin de serpent", 
+                            "Fleur de lotus", 
+                            "Lanterne rouge", 
+                            "Éventail fleuri", 
+                            "Lanternes lunaires", 
+                            "Pétards", 
+                            "Le sourire du dragon", 
+                            "Enveloppes porte-bonheur", 
+                            "Étang à carpes koi", 
+                            "Oreilles de chat steampunk", 
+                            "Méca Flora", 
+                            "Chapeau melon", 
+                            "Cuivre battant", 
+                            "Montre du gardien du temps", 
+                            "Alchimie des flux", 
+                            "Petit cottage", 
+                            "Épée enflammée", 
+                            "Potion magique", 
+                            "Bâton de sorcier", 
+                            "Runes lumineuses", 
+                            "Rempart", 
+                            "Médaillon Crâne", 
+                            "Trésor et Clé", 
+                            "Aurore", 
+                            "Bonnet ours polaire", 
+                            "Tenue Lofi Girl", 
+                            "Lofi Cat joueur", 
+                            "ChilledCow somnolente", 
+                            "Session d'étude", 
+                            "Câlin collectif", 
+                            "Casque Oreilles de chat", 
+                            "Thé aux perles", 
+                            "Lapin Zzzz", 
+                            "Jeune pousse", 
+                            "Petite fleur", 
+                            "Collations en néon", 
+                            "UwU XP", 
+                            "Lumières hexagonales", 
+                            "L'Anomalie", 
+                            "La Marque", 
+                            "Le monstre que tu as créé", 
+                            "Les gantelets Atlas", 
+                            "Pyromâcheurs", 
+                            "POISCAILLE !", 
+                            "Le Hexcore", 
+                            "Alimenté par le Shimmer", 
+                            "Kitsune", 
+                            "Licorne", 
+                            "Phénix", 
+                            "Fées dansantes", 
+                            "Wapiti cristallin", 
+                            "Sérénade des sirènes", 
+                            "Bébé bête éclipsante", 
+                            "Ryu", 
+                            "Chun-Li", 
+                            "Ken", 
+                            "Akuma", 
+                            "Cammy", 
+                            "Guile", 
+                            "Juri", 
+                            "M. Bison", 
+                            "Aube et crépuscule", 
+                            "Couronne automnale", 
+                            "Cycle lunaire", 
+                            "Kabuto", 
+                            "Masque Oni", 
+                            "Chapeau de paille", 
+                            "Encre de sakura", 
+                            "Guerrier sakura", 
+                            "Marque de shuriken", 
+                            "VALORANT Champions 2024", 
+                            "Transfert dimensionnel de Yoru", 
+                            "Nuage de poison de Viper", 
+                            "Vol neural de Cypher", 
+                            "Un zeste de Clove", 
+                            "ENCHAÎNE LES FRAGS", 
+                            "Capuche d'Omen", 
+                            "Œillade de Reyna", 
+                            "Tempête de lames", 
+                            "Sorcière de minuit", 
+                            "Couronne maléfique", 
+                            "Le Fil de la mort", 
+                            "Braises spirituelles", 
+                            "Anneau sinistre", 
+                            "Sceau arcanique", 
+                            "Poussière d'étoiles", 
+                            "Trou noir", 
+                            "Constellations", 
+                            "Orbite solaire", 
+                            "OVNI", 
+                            "Casque d'astronaute", 
+                            "Chromawave", 
+                            "Chat douillet", 
+                            "Oasis", 
+                            "Ambiance pluvieuse", 
+                            "Émerveille tes oreilles", 
+                            "Gribouillage", 
+                            "Bug", 
+                            "Cybernétique", 
+                            "Aube numérique", 
+                            "Implant", 
+                            "Feu", 
+                            "Eau", 
+                            "Air", 
+                            "Terre", 
+                            "Éclair", 
+                            "Équilibre", 
+                            "Capitaine pirate", 
+                            "Margoulin", 
+                            "L'bon vieux Coco", 
+                            "Tibias croisés", 
+                            "Tir de canon", 
+                            "Timonier", 
+                            "Joystick", 
+                            "Clyde Invaders", 
+                            "Viens-tu, yo ?", 
+                            "Tireur d'élite", 
+                            "Saut de Mallow", 
+                            "Serpent-glouton", 
+                            "Floraison sucrée", 
+                            "Duo de pissenlits", 
+                            "Marcel l'Arc-en-ciel", 
+                            "Fraisier", 
+                            "Papillons", 
+                            "Le Collectif Fleuri", 
+                            "D'humeur émerveillée", 
+                            "D'humeur paniquée", 
+                            "D'humeur stressée", 
+                            "D'humeur délicieuse", 
+                            "Casque DISXCORE", 
+                            "IU futuriste", 
+                            "Fumée"
+                        ],
                     },
                 },
             },
             {
-                title: "Paramètres avancés",
+                title: "Mes pointages",
                 idfilters: {
-                    title: "Filtres par défaut",
+                    title: "Affichage",
                     idesc: {
                         type: "paragraphe",
-                        value: "Définir les filtres qui seront activés par défaut",
+                        value: "Définir les éléments à afficher ou non",
                     },
-                    "filter-nom": {
+                    "afch-hj": {
                         type: "checkbox",
-                        label: "Nom",
+                        label: "Heures effectuées par jour",
                         checked: true,
                     },
-                    "filter-prenom": {
+                    "afch-bhj": {
                         type: "checkbox",
-                        label: "Prénom",
+                        label: "Balance d'heures du jour",
                         checked: true,
                     },
-                    "filter-societe": {
+                    "afch-hs": {
                         type: "checkbox",
-                        label: "Société",
-                        checked: false,
+                        label: "Heures effectuées par semaine",
+                        checked: true,
                     },
-                    "filter-emploi": {
+                    "afch-bhs": {
                         type: "checkbox",
-                        label: "Emploi",
-                        checked: false,
+                        label: "Balance d'heures de la semaine",
+                        checked: true,
                     },
-                    "filter-etablissement": {
+                    "afch-if": {
                         type: "checkbox",
-                        label: "Établissement",
-                        checked: false,
+                        label: "Image correspondant au jour ferié",
+                        checked: true,
+                    },
+                    "afch-itt": {
+                        type: "checkbox",
+                        label: "Icone de télétravail",
+                        checked: true,
+                    },
+                    "afch-jc": {
+                        type: "checkbox",
+                        label: "Jour de congé",
+                        checked: true,
                     },
                 },
                 idmisc: {
                     title: "Divers",
-                    idesc: {
-                        type: "paragraphe",
-                        value: "Autres paramètres qui seront définis très bientôt",
+                    "nbh": {
+                        type: "text",
+                        label: "Nombre par semaine",
+                        value: "38",
                     },
                 },
             },
@@ -481,24 +791,44 @@
                         type: "button",
                         label: "Envoyer",
                         onClickFn: function() {
+                            if (window.is_locked_btn_send_ticket) return;
+                            
+                            // Validation de la longueur du message
+                            const description = document.getElementById("ticket-description").value.trim();
+                            if (description.length < 10) {
+                                showPopup("Le message doit contenir au moins 10 caractères", "error");
+                                return;
+                            }
+                            if (description.length > 1200) {
+                                showPopup("Le message ne peut pas dépasser 1200 caractères", "error");
+                                return;
+                            }
+                            
+                            window.is_locked_btn_send_ticket = true;
+                            
                             if (srh.user.sal.tables.s1adr == null || srh.user.sal.tables.s1adr == undefined) {
                                 let data = getinfo();
                                 srh.user.sal.tables.s1adr = data["response"]["s1adr"];
                             }
-                            // window.postMessage({
-                            //     source: "concorde",
-                            //     webhook: document.getElementById("ticket-type").value[0], 
-                            //     description: document.getElementById("ticket-description").value,
-                            //     name: srh.user.prenom + " " + srh.user.nom,
-                            //     email: srh.user.sal.tables.s1adr.rows[0].adrmail.val,
-                            //     id: userID
-                            // }, "*");
+                            
                             window.postMessage({
                                 source: "concorde",
-                                type: "DB_UPDATE_PROFILE", 
-                                avatar: 1,
-                                banner: 2,
+                                webhook: document.getElementById("ticket-type").value[0],
+                                description: description,
+                                name: srh.user.prenom + " " + srh.user.nom,
+                                email: srh.user.sal.tables.s1adr.rows[0].adrmail.val,
+                                id: userID
                             }, "*");
+                            
+                            // Afficher la popup de succès
+                            showPopup("Ticket envoyé avec succès !", "success");
+                            
+                            // Vider le champ
+                            document.getElementById("ticket-description").value = "";
+                            
+                            setTimeout(() => {
+                                window.is_locked_btn_send_ticket = false;
+                            }, 2000);
                         },
                         style: { borderColor: "#4a90e2", color: "#4a90e2", backgroundColor: "#f5f9ff" },
                     }
@@ -514,6 +844,15 @@
                 }
             }
         ];
+
+        // Ajouter l'événement pour le compteur (à appeler lors de l'initialisation)
+        document.addEventListener('DOMContentLoaded', function() {
+            const description = document.getElementById("ticket-description");
+            if (description) {
+                description.addEventListener('input', updateCharacterCounter);
+                updateCharacterCounter(); // Initialiser le compteur
+            }
+        });
     }
 
     // Fonction pour fermer le panneau de configuration

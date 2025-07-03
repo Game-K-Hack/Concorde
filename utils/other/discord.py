@@ -1,6 +1,6 @@
 # https://discord.com/api/v9/collectibles-categories?include_bundles=true&variants_return_style=2&skip_num_categories=0
 
-data = eval(open("./discord.json", "r", encoding="utf8").read().replace("false", "False").replace("true", "True").replace("null", "None"))
+data = eval(open("./utils/other/discord.json", "r", encoding="utf8").read().replace("false", "False").replace("true", "True").replace("null", "None"))
 
 avatar = []
 banner = []
@@ -35,5 +35,9 @@ for c in data:
 avatar = [elm for elm in avatar if len(elm["products"]) > 0]
 banner = [elm for elm in banner if len(elm["products"]) > 0]
 
-print(avatar)
+# print(avatar)
 # print(banner)
+
+for cat in avatar:
+    for p in cat["products"]:
+        print(p["name"])
