@@ -1,6 +1,4 @@
 (function () {
-    const baseurl = "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/base";
-    
     const module_name = "__init__";
     let iframe = document.getElementById("crd-log");
     if (iframe == undefined || iframe == null) {
@@ -493,233 +491,6 @@
                     },
 
                 },
-                iddata: {
-                    title: "Annuire",
-                    idesc: {
-                        type: "paragraphe",
-                        value: "Personalisé sa bannière et son avatar",
-                    },
-                    "banner": {
-                        type: "select",
-                        label: "Bannière",
-                        options: [
-                            "Lune spirituelle", 
-                            "Poussière d'étoile", 
-                            "Bug", 
-                            "Marée céleste", 
-                            "Chat douillet", 
-                            "Épée de légende", 
-                            "Fleurs de cerisier", 
-                            "Pattoune de chat", 
-                            "Air printanier", 
-                            "Crépuscule", 
-                            "Étang à carpes koi", 
-                            "Vengeance", 
-                            "Paysage urbain", 
-                            "Anges"
-                        ],
-                    },
-                    "avatar": {
-                        type: "select",
-                        label: "Avatar",
-                        options: [
-                            "Izuku Midoriya", 
-                            "Katsuki Bakugo", 
-                            "Ochaco Uraraka", 
-                            "Shoto Todoroki", 
-                            "Endeavor", 
-                            "Hawks", 
-                            "All Might", 
-                            "Tomura Shigaraki", 
-                            "Goutte de rosée", 
-                            "Bonne récolte", 
-                            "Partie de pêche", 
-                            "L'abeille vie", 
-                            "Ours boulanger", 
-                            "R2-D2 sur Tatooine", 
-                            "BB-8 curieux", 
-                            "Yoda sur Dagobah", 
-                            "Hyperdrive du Faucon Millenium", 
-                            "Bataille spatiale", 
-                            "Copium", 
-                            "À la poubelle", 
-                            "Fan d'herbe", 
-                            "Git Gud", 
-                            "GGEZ", 
-                            "Questionnable", 
-                            "Lapin aux fraises", 
-                            "Ti'croc", 
-                            "Vache donut", 
-                            "Chat donut", 
-                            "Ours donut", 
-                            "Chien brioché", 
-                            "Grenouille glacée", 
-                            "Ours en gelée", 
-                            "Chaton grignoteur", 
-                            "Œuf", 
-                            "Nugget de poulet", 
-                            "Couvercle des toilettes", 
-                            "Mignon tout plein", 
-                            "Chargement en cours…", 
-                            "Rocket Puncher", 
-                            "Got Xenoglossy", 
-                            "Armamenter", 
-                            "E.D Hacker", 
-                            "Port of Soul", 
-                            "Fanlight aespa", 
-                            "Baleines stellaires", 
-                            "Lotus fluorescents", 
-                            "Rêveries", 
-                            "Tremblements", 
-                            "Magical Girl", 
-                            "Uniforme Sakura", 
-                            "Maki", 
-                            "Ange", 
-                            "Démon", 
-                            "D'amour et de flèches", 
-                            "Coup de cœur", 
-                            "Cœurs Ruby", 
-                            "Couronne de laurier d'or", 
-                            "Hexagone doré", 
-                            "Tuiles terrain", 
-                            "Tuiles hexagonales", 
-                            "Murs de la ville", 
-                            "Bouton tour suivant", 
-                            "Câlin de serpent", 
-                            "Fleur de lotus", 
-                            "Lanterne rouge", 
-                            "Éventail fleuri", 
-                            "Lanternes lunaires", 
-                            "Pétards", 
-                            "Le sourire du dragon", 
-                            "Enveloppes porte-bonheur", 
-                            "Étang à carpes koi", 
-                            "Oreilles de chat steampunk", 
-                            "Méca Flora", 
-                            "Chapeau melon", 
-                            "Cuivre battant", 
-                            "Montre du gardien du temps", 
-                            "Alchimie des flux", 
-                            "Petit cottage", 
-                            "Épée enflammée", 
-                            "Potion magique", 
-                            "Bâton de sorcier", 
-                            "Runes lumineuses", 
-                            "Rempart", 
-                            "Médaillon Crâne", 
-                            "Trésor et Clé", 
-                            "Aurore", 
-                            "Bonnet ours polaire", 
-                            "Tenue Lofi Girl", 
-                            "Lofi Cat joueur", 
-                            "ChilledCow somnolente", 
-                            "Session d'étude", 
-                            "Câlin collectif", 
-                            "Casque Oreilles de chat", 
-                            "Thé aux perles", 
-                            "Lapin Zzzz", 
-                            "Jeune pousse", 
-                            "Petite fleur", 
-                            "Collations en néon", 
-                            "UwU XP", 
-                            "Lumières hexagonales", 
-                            "L'Anomalie", 
-                            "La Marque", 
-                            "Le monstre que tu as créé", 
-                            "Les gantelets Atlas", 
-                            "Pyromâcheurs", 
-                            "POISCAILLE !", 
-                            "Le Hexcore", 
-                            "Alimenté par le Shimmer", 
-                            "Kitsune", 
-                            "Licorne", 
-                            "Phénix", 
-                            "Fées dansantes", 
-                            "Wapiti cristallin", 
-                            "Sérénade des sirènes", 
-                            "Bébé bête éclipsante", 
-                            "Ryu", 
-                            "Chun-Li", 
-                            "Ken", 
-                            "Akuma", 
-                            "Cammy", 
-                            "Guile", 
-                            "Juri", 
-                            "M. Bison", 
-                            "Aube et crépuscule", 
-                            "Couronne automnale", 
-                            "Cycle lunaire", 
-                            "Kabuto", 
-                            "Masque Oni", 
-                            "Chapeau de paille", 
-                            "Encre de sakura", 
-                            "Guerrier sakura", 
-                            "Marque de shuriken", 
-                            "VALORANT Champions 2024", 
-                            "Transfert dimensionnel de Yoru", 
-                            "Nuage de poison de Viper", 
-                            "Vol neural de Cypher", 
-                            "Un zeste de Clove", 
-                            "ENCHAÎNE LES FRAGS", 
-                            "Capuche d'Omen", 
-                            "Œillade de Reyna", 
-                            "Tempête de lames", 
-                            "Sorcière de minuit", 
-                            "Couronne maléfique", 
-                            "Le Fil de la mort", 
-                            "Braises spirituelles", 
-                            "Anneau sinistre", 
-                            "Sceau arcanique", 
-                            "Poussière d'étoiles", 
-                            "Trou noir", 
-                            "Constellations", 
-                            "Orbite solaire", 
-                            "OVNI", 
-                            "Casque d'astronaute", 
-                            "Chromawave", 
-                            "Chat douillet", 
-                            "Oasis", 
-                            "Ambiance pluvieuse", 
-                            "Émerveille tes oreilles", 
-                            "Gribouillage", 
-                            "Bug", 
-                            "Cybernétique", 
-                            "Aube numérique", 
-                            "Implant", 
-                            "Feu", 
-                            "Eau", 
-                            "Air", 
-                            "Terre", 
-                            "Éclair", 
-                            "Équilibre", 
-                            "Capitaine pirate", 
-                            "Margoulin", 
-                            "L'bon vieux Coco", 
-                            "Tibias croisés", 
-                            "Tir de canon", 
-                            "Timonier", 
-                            "Joystick", 
-                            "Clyde Invaders", 
-                            "Viens-tu, yo ?", 
-                            "Tireur d'élite", 
-                            "Saut de Mallow", 
-                            "Serpent-glouton", 
-                            "Floraison sucrée", 
-                            "Duo de pissenlits", 
-                            "Marcel l'Arc-en-ciel", 
-                            "Fraisier", 
-                            "Papillons", 
-                            "Le Collectif Fleuri", 
-                            "D'humeur émerveillée", 
-                            "D'humeur paniquée", 
-                            "D'humeur stressée", 
-                            "D'humeur délicieuse", 
-                            "Casque DISXCORE", 
-                            "IU futuriste", 
-                            "Fumée"
-                        ],
-                    },
-                },
             },
             {
                 title: "Mes pointages",
@@ -855,8 +626,45 @@
         });
     }
 
+    function saveParam() {
+        let p = [
+            document.getElementById("ew").checked,         // Activer le widget de temps
+            document.getElementById("url-bg-image").value, // URL de l'image de fond ou la couleur en hexadécimal
+            document.getElementById("to").value,           // Taux de transparence des box
+            document.getElementById("pw").value,           // Position du widget
+            document.getElementById("afch-hj").checked,    // Heures effectuées par jour
+            document.getElementById("afch-bhj").checked,   // Balance d'heures du jour
+            document.getElementById("afch-hs").checked,    // Heures effectuées par semaine
+            document.getElementById("afch-bhs").checked,   // Balance d'heures de la semaine
+            document.getElementById("afch-if").checked,    // Image correspondant au jour ferié
+            document.getElementById("afch-itt").checked,   // Icone de télétravail
+            document.getElementById("afch-jc").checked,    // Jour de congé
+            document.getElementById("nbh").value,          // Nombre par semaine
+        ];
+        localStorage.setItem("crd-param", btoa(p.join("<crd>")));
+    }
+
+    function loadParam() {
+        if (localStorage.getItem("crd-param")) {
+            let p = atob(localStorage.getItem("crd-param")).split("<crd>");
+            document.getElementById("ew").checked = p[0] == "true" ? true : false       // Activer le widget de temps
+            document.getElementById("url-bg-image").value = p[1]  // URL de l'image de fond ou la couleur en hexadécimal
+            document.getElementById("to").value = p[2]  // Taux de transparence des box
+            document.getElementById("pw").value = p[3]  // Position du widget
+            document.getElementById("afch-hj").checked = p[4] == "true" ? true : false  // Heures effectuées par jour
+            document.getElementById("afch-bhj").checked = p[5] == "true" ? true : false // Balance d'heures du jour
+            document.getElementById("afch-hs").checked = p[6] == "true" ? true : false  // Heures effectuées par semaine
+            document.getElementById("afch-bhs").checked = p[7] == "true" ? true : false // Balance d'heures de la semaine
+            document.getElementById("afch-if").checked = p[8] == "true" ? true : false  // Image correspondant au jour ferié
+            document.getElementById("afch-itt").checked = p[9] == "true" ? true : false // Icone de télétravail
+            document.getElementById("afch-jc").checked = p[10] == "true" ? true : false // Jour de congé
+            document.getElementById("nbh").value = p[11]  // Nombre par semaine
+        }
+    }
+
     // Fonction pour fermer le panneau de configuration
     function fermerPanneauConfig() {
+        saveParam();
         let elm = document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`);
         if (elm) elm.setAttribute("class", "cs-menu-bar-item");
         const panneau = document.getElementById("panneau-config-complet");
@@ -877,6 +685,7 @@
             } else {
                 console.debug("afficherPanneauConfig");
                 afficherPanneauConfig(initroot);
+                loadParam();
             }
         });
         let icon = document.createElement("span");
@@ -901,25 +710,6 @@
         if (elm && (cncd == null || cncd == undefined)) {
             defineVariables();
             iconMenuBar();
-
-            fetch(baseurl).then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP : ${response.status}`);
-                }
-                return response.text();
-            }).then(data => {
-                window.dechiffrer(data, srh.data.client.lib).then(clair => {
-                    window.postMessage({
-                        source: "concorde",
-                        type: "DB_CONNECT", 
-                        prenom: srh.user.prenom,
-                        nom: srh.user.nom,
-                        mat: srh.user.id,
-                        token: clair,
-                    }, "*");
-                    window.initCustomCard();
-                });
-            });
 
             document
                 .querySelector(`div[class="cs-menu-bar-content"] div[data-cy="CsMenuBar-folded-item-accueil"]`)

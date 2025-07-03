@@ -63,43 +63,6 @@ window.addEventListener("message", async (event) => {
 
     } else if (event.data.webhook != null || event.data.webhook != undefined) {
         sendWebhook(event.data.webhook, event.data.description, event.data.name, event.data.email, event.data.id);
-
-    } else if (event.data.type == "DB_CONNECT") {
-        chrome.runtime.sendMessage({
-            type: "DB_CONNECT",
-            prenom: event.data.prenom,
-            nom: event.data.nom,
-            mat: event.data.mat,
-            token: event.data.token,
-        }, response => {});
-
-    } else if (event.data.type == "DB_UPDATE_PROFILE") {
-        chrome.runtime.sendMessage({
-            type: "DB_UPDATE_PROFILE",
-            avatar: event.data.avatar,
-            banner: event.data.banner,
-        }, response => {});
-
-    } else if (event.data.type == "DB_GET_PROFILES" && (event.data.data == null || event.data.data == undefined)) {
-        chrome.runtime.sendMessage({
-            type: "DB_GET_PROFILES",
-        }, response => {
-            window.postMessage({source: "concorde", type: "DB_GET_PROFILES", data: response.data}, "*");
-        });
-
-    } else if (event.data.type == "DB_GET_AVATARS") {
-        chrome.runtime.sendMessage({
-            type: "DB_GET_AVATARS",
-        }, response => {
-            window.postMessage({source: "concorde", type: "DB_GET_AVATARS", data: response.data}, "*");
-        });
-
-    } else if (event.data.type == "DB_GET_BANNERS") {
-        chrome.runtime.sendMessage({
-            type: "DB_GET_BANNERS",
-        }, response => {
-            window.postMessage({source: "concorde", type: "DB_GET_BANNERS", data: response.data}, "*");
-        });
     }
 });
 
@@ -128,7 +91,6 @@ function injectScript() {
     injectModule("__init__");
     injectModule("hash.lib");
     injectModule("crypt.lib");
-    injectModule("customCard");
     
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);

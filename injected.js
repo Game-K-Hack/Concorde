@@ -30,7 +30,7 @@
             oldcode = code;
             console.debug("code: " + code);
 
-            window.fermerPanneauConfig();
+            try {window.fermerPanneauConfig();} catch (e) {}
 
             if (document.getElementById("calendar-module")) document.getElementById("calendar-module").remove();
 
