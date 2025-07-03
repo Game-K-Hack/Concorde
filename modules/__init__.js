@@ -659,6 +659,9 @@
             document.getElementById("afch-itt").checked = p[9] == "true" ? true : false // Icone de télétravail
             document.getElementById("afch-jc").checked = p[10] == "true" ? true : false // Jour de congé
             document.getElementById("nbh").value = p[11]  // Nombre par semaine
+        } else {
+            localStorage.setItem("crd-param", "salut");
+            loadParam();
         }
     }
 

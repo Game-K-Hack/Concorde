@@ -49,6 +49,8 @@
 
     let dataWeek = {};
 
+    const WORKHOURS = parseInt(atob(localStorage.getItem("crd-param")).split("<crd>")[11]);
+
     // Fonction pour initialiser le calendrier
     function initCalendar() {
         // Mettre à jour les variables CSS
@@ -122,6 +124,9 @@
 
     // Fonction pour marquer un jour comme jour de télétravail
     function markAsTeletravail(jour) {
+        let p = atob(localStorage.getItem("crd-param")).split("<crd>");
+        if (p[9] == "true" ? false : true) {return}
+
         const jourNormalise = jour.toLowerCase();
         const dayElement = document.getElementById(`day-${jourNormalise}`);
         
@@ -135,6 +140,9 @@
 
     // Fonction pour marquer un jour comme congé
     function markAsConge(jour, libelle = "Congé") {
+        let p = atob(localStorage.getItem("crd-param")).split("<crd>");
+        if (p[10] == "true" ? false : true) {return}
+
         const jourNormalise = jour.toLowerCase();
         const dayElement = document.getElementById(`day-${jourNormalise}`);
         
@@ -159,6 +167,7 @@
 
     // Fonction pour marquer un jour comme férié
     function markAsFerie(jour, nomFerie, image) {
+        let param = atob(localStorage.getItem("crd-param")).split("<crd>");
         const jourNormalise = jour.toLowerCase();
         const dayElement = document.getElementById(`day-${jourNormalise}`);
 
@@ -167,7 +176,9 @@
             if (eventsElement) {
                 eventsElement.style.pointerEvents = "none";
                 eventsElement.classList.add("ferie-background");
-                eventsElement.style.backgroundImage = `linear-gradient(rgb(240, 240, 250), rgba(240, 240, 250, 0.5)), url(${image})`;
+                if (param[8] == "true") {
+                    eventsElement.style.backgroundImage = `linear-gradient(rgb(240, 240, 250), rgba(240, 240, 250, 0.5)), url(${image})`;
+                }
                 let p = document.createElement("p");
                 p.textContent = nomFerie;
                 p.style.textAlign = "center";
@@ -1004,8 +1015,8 @@
                     displayHourDayWork(total, jour);
                 }
 
-                let absenceMS = absenceCount * ((38/5)*3600000);
-                let weekMS = (38*3600000) - absenceMS;
+                let absenceMS = absenceCount * ((WORKHOURS/5)*3600000);
+                let weekMS = (WORKHOURS*3600000) - absenceMS;
 
                 displayHourWeekWork(totalday, weekMS);
             }
@@ -1027,6 +1038,8 @@
     }
 
     function displayHourDayWork(ms, jour) {
+        let p = atob(localStorage.getItem("crd-param")).split("<crd>");
+
         // Vérifier si le jour existe
         if (config.days.findIndex((d) => d.name.toLowerCase() === jour.toLowerCase()) === -1) {
             console.error(`Le jour "${jour}" n'existe pas dans le calendrier`);
@@ -1039,10 +1052,20 @@
             const elm = dayEventsContainer.querySelector(`div[class="date"] p[class="date-hours"]`);
             if (elm) {
                 const w = formatMS2Hour(ms);
-                const b = formatMS2Hour(Math.abs(((38/5)*3600000)-ms));
-                const s = ((38/5)*3600000) <= ms ? "+" : "-";
-                const c = ((38/5)*3600000) <= ms ? "green" : "red";
-                elm.innerHTML = `${w} <span style="color:${c}">(${s}${b})</span>`;
+                const b = formatMS2Hour(Math.abs(((WORKHOURS/5)*3600000)-ms));
+                const s = ((WORKHOURS/5)*3600000) <= ms ? "+" : "-";
+                const c = ((WORKHOURS/5)*3600000) <= ms ? "green" : "red";
+                let t = "";
+
+                if (p[4] == "true" ? true : false) {
+                    t += `${w} `;
+                }
+
+                if (p[5] == "true" ? true : false) {
+                    t += `<span style="color:${c}">(${s}${b})</span>`;
+                }
+
+                elm.innerHTML = t;
             } else {
             console.error(`Conteneur d'événements (div[class="date-hours"]) pour "${jour}" non trouvé`);
             }
@@ -1052,11 +1075,18 @@
     }
 
     function displayHourWeekWork(ms, weekMS) {
-        let w = document.getElementById("current-week-hours-work");
-        w.innerText = formatMS2Hour(ms);
-        let b = document.getElementById("current-week-hours-balance");
-        b.innerText = " (" + (weekMS <= ms ? "+" : "-") + formatMS2Hour(Math.abs(weekMS-ms)) + ")";
-        b.style.color = weekMS <= ms ? "green" : "red";
+        let p = atob(localStorage.getItem("crd-param")).split("<crd>");
+
+        if (p[6] == "true" ? true : false) {
+            let w = document.getElementById("current-week-hours-work");
+            w.innerText = formatMS2Hour(ms);
+        }
+
+        if (p[7] == "true" ? true : false) {
+            let b = document.getElementById("current-week-hours-balance");
+            b.innerText = " (" + (weekMS <= ms ? "+" : "-") + formatMS2Hour(Math.abs(weekMS-ms)) + ")";
+            b.style.color = weekMS <= ms ? "green" : "red";
+        }
     }
 
     function updateWeekDisplay() {

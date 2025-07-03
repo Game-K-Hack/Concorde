@@ -13,8 +13,23 @@
     console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
 
     function setBackground() {
+        let p = atob(localStorage.getItem("crd-param")).split("<crd>")[1];
         let elm = document.getElementById(`csAccuielContainer`);
-        elm.style.backgroundImage = `url(%file.background.jpg%)`;
+
+        const isHexColor = /^(#|)([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/i.test(p);
+        const isImageUrl = /^(https?:\/\/|\/|\.\/|\.\.\/|data:image\/)/i.test(p);
+
+        if (isHexColor) {
+            elm.style.backgroundImage = "";
+            elm.style.backgroundColor = p.startsWith("#") ? p : "#" + p;
+        } else if (isImageUrl) {
+            elm.style.backgroundColor = "";
+            elm.style.backgroundImage = `url(${p})`;
+        } else {
+            elm.style.backgroundColor = "";
+            elm.style.backgroundImage = `url(%file.background.jpg%)`;
+        }
+
         elm.style.backgroundPosition = `center center`;
         elm.style.backgroundAttachment = `fixed`;
         elm.style.backgroundRepeat = `no-repeat`;
@@ -22,6 +37,8 @@
     }
 
     function setStyle() {
+        let p = atob(localStorage.getItem("crd-param")).split("<crd>");
+        p = 1 - (parseFloat(p[2]) / 100);
         let tab = document.getElementById(`main-tabs`);
         tab.querySelector(`ul[class="ui-tabs-nav ui-corner-all ui-helper-reset ui-helper-clearfix ui-widget-header"]`).style.padding = `unset`;
         tab.style.minHeight = `100vh`;
@@ -29,7 +46,7 @@
         for (let fi of feuilleDeStyle) {
             for (let ficss of fi.cssRules) {
                 if (ficss.selectorText === ".cs-widget") {
-                    ficss.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                    ficss.style.backgroundColor = `rgba(255, 255, 255, ${p})`;
                 }
                 if (ficss.selectorText === ".el-collapse-item__header") {
                     ficss.style.backgroundColor = "transparent";
