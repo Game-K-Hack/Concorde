@@ -610,7 +610,7 @@
                 idinfo: {
                     idinfodesc: {
                         type: "paragraphe", 
-                        value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <strong>concorde.algam@laposte.net</strong><br><br>Version: 1.0<br>Identifiant: " + userID
+                        value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <a href=\"mailto:concorde.algam@laposte.net\"><strong>concorde.algam@laposte.net</strong></a><br><br>Auteur: <strong>Kélian M.</strong><br>Version: <strong>1.0</strong><br>Identifiant: <strong>" + userID + "</strong>"
                     }
                 }
             }
