@@ -20,8 +20,7 @@
   ],
   "host_permissions": [
       "https://portail-rh.algam.net/*", 
-      "https://discord.com/api/webhooks/*", 
-      "https://*.supabase.co/*"
+      "https://discord.com/api/webhooks/*"
   ],
   "background": {
     "scripts": ["background.js"]
@@ -37,6 +36,7 @@
   }],
   "browser_specific_settings": {
       "gecko": {
+          "id": "{c2db8d57-bd7e-4862-bf55-49affefd508a}",
           "update_url": "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/updates.json"
       }
   }
