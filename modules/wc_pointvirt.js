@@ -1152,7 +1152,7 @@
             let ctx = srh.getIdContext();
             let data = {
                 "script":"ws_gtareadtables",
-                "popu":[[srh.user.id,1]],
+                "popu":[[srh.user.id,srh.curContract]],
                 "ddeb":formatDate(week.monday),
                 "dfin":formatDate(week.sunday),
                 "tables":["cpointagereel", "cabs"],
