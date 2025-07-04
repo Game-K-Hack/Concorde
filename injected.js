@@ -30,7 +30,7 @@
             oldcode = code;
             console.debug("code: " + code);
 
-            window.fermerPanneauConfig();
+            try {window.fermerPanneauConfig();} catch (e) {}
 
             if (document.getElementById("calendar-module")) document.getElementById("calendar-module").remove();
 
@@ -41,6 +41,158 @@
             setTimeout(() => {welcomeWaiting = false;}, "1000");
         }
     }
+
+    function salut() {
+        // Configuration
+        const gifUrl = 'https://media1.tenor.com/m/E375WGeBP60AAAAd/captain-harlock-harlock.gif?t=' + new Date().getTime();
+        const popupWidth = 400;
+        const popupHeight = 300;
+        
+        // Créer la popup
+        function createGifPopup() {
+            // Créer l'overlay de fond
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `;
+            
+            // Créer le conteneur de la popup (sans contour)
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                background: transparent;
+                position: relative;
+                max-width: 90%;
+                max-height: 90%;
+            `;
+            
+            // Créer un canvas pour contrôler le GIF
+            const canvas = document.createElement('canvas');
+            canvas.width = popupWidth;
+            canvas.height = popupHeight;
+            canvas.style.cssText = `
+                display: block;
+                max-width: 100%;
+                max-height: 100%;
+            `;
+            
+            // Créer l'image GIF
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            // Fonction pour jouer le GIF une seule fois
+            function playGifOnce() {
+                const ctx = canvas.getContext('2d');
+                
+                // Créer un deuxième canvas pour capturer les frames
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                img.onload = function() {
+                    tempCanvas.width = img.width;
+                    tempCanvas.height = img.height;
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    // Dessiner l'image sur le canvas temporaire
+                    tempCtx.drawImage(img, 0, 0);
+                    
+                    // Copier vers le canvas principal
+                    ctx.drawImage(tempCanvas, 0, 0);
+                    
+                    // Arrêter l'animation après un délai (approximatif pour la durée du GIF)
+                    setTimeout(() => {
+                        // Redessiner la dernière frame pour qu'elle reste figée
+                        ctx.drawImage(tempCanvas, 0, 0);
+                    }, 3000); // Ajustez selon la durée de votre GIF
+                };
+                
+                img.src = gifUrl;
+            }
+            
+            // Alternative plus simple : utiliser une image normale qui se transforme en statique
+            const gifImg = document.createElement('img');
+            gifImg.src = gifUrl;
+            gifImg.style.cssText = `
+                max-width: 100%;
+                max-height: 100%;
+                display: block;
+            `;
+            
+            // Arrêter l'animation après un délai
+            setTimeout(() => {
+                // Remplacer par une version statique (première frame)
+                const staticCanvas = document.createElement('canvas');
+                const staticCtx = staticCanvas.getContext('2d');
+                
+                gifImg.onload = function() {
+                    staticCanvas.width = gifImg.naturalWidth;
+                    staticCanvas.height = gifImg.naturalHeight;
+                    staticCtx.drawImage(gifImg, 0, 0);
+                    
+                    // Remplacer l'image par le canvas statique
+                    popup.replaceChild(staticCanvas, gifImg);
+                    staticCanvas.style.cssText = gifImg.style.cssText;
+                };
+            }, 3000); // Durée approximative du GIF
+            
+            // Événements de fermeture
+            overlay.onclick = function(e) {
+                if (e.target === overlay) {
+                    closePopup();
+                }
+            };
+            
+            // Fermeture avec Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closePopup();
+                }
+            });
+            
+            function closePopup() {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+            }
+            
+            // Assembler la popup
+            popup.appendChild(gifImg); // Utiliser l'image GIF simple
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+            
+            // Optionnel : fermeture automatique après le GIF
+            setTimeout(() => {
+                closePopup();
+            }, 1500); // Ferme après 6 secondes
+        }
+        
+        // Lancer la popup
+        createGifPopup();
+    }
+
+    var k = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65],
+    n = 0;
+    $(document).keydown(function (e) {
+        if (e.keyCode === k[n++]) {
+            if (n === k.length) {
+                salut();
+                n = 0;
+                return false;
+            }
+        }
+        else {
+            n = 0;
+        }
+    });
 
     setInterval(waitForSRH, 100);
 })();

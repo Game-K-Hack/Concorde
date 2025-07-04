@@ -1,6 +1,4 @@
 (function () {
-    const baseurl = "https://raw.githubusercontent.com/Game-K-Hack/Concorde/refs/heads/master/base";
-    
     const module_name = "__init__";
     let iframe = document.getElementById("crd-log");
     if (iframe == undefined || iframe == null) {
@@ -199,7 +197,7 @@
                                     param.options.forEach((option) => {
                                         const opt = document.createElement("option");
                                         opt.value = option.toLowerCase().replace(" ", "-");
-                                        opt.textContent = option;
+                                        opt.innerHTML = option;
                                         select.appendChild(opt);
                                     });
 
@@ -361,6 +359,98 @@
         }
     }
 
+    // Fonction pour afficher la popup
+    function showPopup(message, type = "success") {
+        // Supprimer les anciennes popups
+        const existingPopup = document.querySelector('.ticket-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+        
+        // Créer la popup
+        const popup = document.createElement('div');
+        popup.className = 'ticket-popup';
+        popup.innerHTML = message;
+        
+        // Styles de base
+        popup.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+        
+        // Couleurs selon le type
+        if (type === "success") {
+            popup.style.backgroundColor = "#d4edda";
+            popup.style.color = "#155724";
+            popup.style.border = "1px solid #c3e6cb";
+        } else if (type === "error") {
+            popup.style.backgroundColor = "#f8d7da";
+            popup.style.color = "#721c24";
+            popup.style.border = "1px solid #f5c6cb";
+        }
+        
+        // Ajouter au DOM
+        document.body.appendChild(popup);
+        
+        // Animation d'entrée
+        setTimeout(() => {
+            popup.style.transform = "translateX(0)";
+        }, 100);
+        
+        // Suppression automatique après 3 secondes
+        setTimeout(() => {
+            popup.style.transform = "translateX(100%)";
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    popup.parentNode.removeChild(popup);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // Fonction pour afficher le compteur de caractères (optionnel)
+    function updateCharacterCounter() {
+        const description = document.getElementById("ticket-description");
+        if (!description) return;
+        
+        const currentLength = description.value.length;
+        let counter = document.getElementById("ticket-char-counter");
+        
+        if (!counter) {
+            counter = document.createElement('div');
+            counter.id = "ticket-char-counter";
+            counter.style.cssText = `
+                font-size: 12px;
+                color: #666;
+                margin-top: 5px;
+                text-align: right;
+            `;
+            description.parentNode.appendChild(counter);
+        }
+        
+        counter.textContent = `${currentLength}/200 caractères`;
+        
+        if (currentLength < 10) {
+            counter.style.color = "#dc3545";
+        } else if (currentLength > 180) {
+            counter.style.color = "#fd7e14";
+        } else {
+            counter.style.color = "#28a745";
+        }
+    }
+
     function defineVariables() {
 
         // Récupérer l'identifiant de l'utilisateur
@@ -369,98 +459,89 @@
         // Structure de données pour la configuration
         initroot = [
             {
-                title: "Paramètres généraux",
+                title: "Accueil",
                 idaff: {
                     title: "Affichage",
                     idesc: {
                         type: "paragraphe",
                         value: "Modifier les paramètres d'affichage",
                     },
-                    "show-inactive": {
+                    "ew": {
                         type: "checkbox",
-                        label: "Afficher les utilisateurs inactifs",
-                        checked: false,
-                    },
-                    "compact-mode": {
-                        type: "checkbox",
-                        label: "Mode compact",
+                        label: "Activer le widget de temps",
                         checked: true,
                     },
-                    "theme-select": {
+                    "url-bg-image": {
+                        type: "text",
+                        label: "URL de l'image de fond ou la couleur en hexadécimal",
+                        value: "",
+                    },
+                    "to": {
                         type: "select",
-                        label: "Thème",
-                        options: ["Défaut", "Sombre", "Clair", "Personnalisé"],
+                        label: "Taux de transparence des box",
+                        options: ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"],
                     },
                 },
-                iddata: {
-                    title: "Données",
-                    idesc: {
-                        type: "paragraphe",
-                        value: "Paramètres de synchronisation des données",
-                    },
-                    "auto-sync": {
-                        type: "checkbox",
-                        label: "Synchronisation automatique",
-                        checked: true,
-                    },
-                    "refresh-rate": {
+                idwidget: {
+                    title: "Widget", 
+                    "pw": {
                         type: "select",
-                        label: "Fréquence de rafraîchissement",
-                        options: [
-                            "30 secondes",
-                            "1 minute",
-                            "5 minutes",
-                            "15 minutes",
-                            "30 minutes",
-                            "1 heure",
-                        ],
+                        label: "Position du widget",
+                        options: ["1", "2", "3", "3", "4", "5", "6"],
                     },
-                    "max-items": {
-                        type: "text",
-                        label: "Nombre maximal d'éléments",
-                        value: "100",
-                    },
+
                 },
             },
             {
-                title: "Paramètres avancés",
+                title: "Mes pointages",
                 idfilters: {
-                    title: "Filtres par défaut",
+                    title: "Affichage",
                     idesc: {
                         type: "paragraphe",
-                        value: "Définir les filtres qui seront activés par défaut",
+                        value: "Définir les éléments à afficher ou non",
                     },
-                    "filter-nom": {
+                    "afch-hj": {
                         type: "checkbox",
-                        label: "Nom",
+                        label: "Heures effectuées par jour",
                         checked: true,
                     },
-                    "filter-prenom": {
+                    "afch-bhj": {
                         type: "checkbox",
-                        label: "Prénom",
+                        label: "Balance d'heures du jour",
                         checked: true,
                     },
-                    "filter-societe": {
+                    "afch-hs": {
                         type: "checkbox",
-                        label: "Société",
-                        checked: false,
+                        label: "Heures effectuées par semaine",
+                        checked: true,
                     },
-                    "filter-emploi": {
+                    "afch-bhs": {
                         type: "checkbox",
-                        label: "Emploi",
-                        checked: false,
+                        label: "Balance d'heures de la semaine",
+                        checked: true,
                     },
-                    "filter-etablissement": {
+                    "afch-if": {
                         type: "checkbox",
-                        label: "Établissement",
-                        checked: false,
+                        label: "Image correspondant au jour ferié",
+                        checked: true,
+                    },
+                    "afch-itt": {
+                        type: "checkbox",
+                        label: "Icone de télétravail",
+                        checked: true,
+                    },
+                    "afch-jc": {
+                        type: "checkbox",
+                        label: "Jour de congé",
+                        checked: true,
                     },
                 },
                 idmisc: {
                     title: "Divers",
-                    idesc: {
-                        type: "paragraphe",
-                        value: "Autres paramètres qui seront définis très bientôt",
+                    "nbh": {
+                        type: "text",
+                        label: "Nombre par semaine",
+                        value: "38",
                     },
                 },
             },
@@ -481,24 +562,44 @@
                         type: "button",
                         label: "Envoyer",
                         onClickFn: function() {
+                            if (window.is_locked_btn_send_ticket) return;
+                            
+                            // Validation de la longueur du message
+                            const description = document.getElementById("ticket-description").value.trim();
+                            if (description.length < 10) {
+                                showPopup("Le message doit contenir au moins 10 caractères", "error");
+                                return;
+                            }
+                            if (description.length > 1200) {
+                                showPopup("Le message ne peut pas dépasser 1200 caractères", "error");
+                                return;
+                            }
+                            
+                            window.is_locked_btn_send_ticket = true;
+                            
                             if (srh.user.sal.tables.s1adr == null || srh.user.sal.tables.s1adr == undefined) {
                                 let data = getinfo();
                                 srh.user.sal.tables.s1adr = data["response"]["s1adr"];
                             }
-                            // window.postMessage({
-                            //     source: "concorde",
-                            //     webhook: document.getElementById("ticket-type").value[0], 
-                            //     description: document.getElementById("ticket-description").value,
-                            //     name: srh.user.prenom + " " + srh.user.nom,
-                            //     email: srh.user.sal.tables.s1adr.rows[0].adrmail.val,
-                            //     id: userID
-                            // }, "*");
+                            
                             window.postMessage({
                                 source: "concorde",
-                                type: "DB_UPDATE_PROFILE", 
-                                avatar: 1,
-                                banner: 2,
+                                webhook: document.getElementById("ticket-type").value[0],
+                                description: description,
+                                name: srh.user.prenom + " " + srh.user.nom,
+                                email: srh.user.sal.tables.s1adr.rows[0].adrmail.val,
+                                id: userID
                             }, "*");
+                            
+                            // Afficher la popup de succès
+                            showPopup("Ticket envoyé avec succès !", "success");
+                            
+                            // Vider le champ
+                            document.getElementById("ticket-description").value = "";
+                            
+                            setTimeout(() => {
+                                window.is_locked_btn_send_ticket = false;
+                            }, 2000);
                         },
                         style: { borderColor: "#4a90e2", color: "#4a90e2", backgroundColor: "#f5f9ff" },
                     }
@@ -509,15 +610,64 @@
                 idinfo: {
                     idinfodesc: {
                         type: "paragraphe", 
-                        value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <strong>concorde.algam@laposte.net</strong><br><br>Version: 1.0<br>Identifiant: " + userID
+                        value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <a href=\"mailto:concorde.algam@laposte.net\"><strong>concorde.algam@laposte.net</strong></a><br><br>Auteur: <strong>Kélian M.</strong><br>Version: <strong>1.0</strong><br>Identifiant: <strong>" + userID + "</strong>"
                     }
                 }
             }
         ];
+
+        // Ajouter l'événement pour le compteur (à appeler lors de l'initialisation)
+        document.addEventListener('DOMContentLoaded', function() {
+            const description = document.getElementById("ticket-description");
+            if (description) {
+                description.addEventListener('input', updateCharacterCounter);
+                updateCharacterCounter(); // Initialiser le compteur
+            }
+        });
+    }
+
+    function saveParam() {
+        let p = [
+            document.getElementById("ew").checked,         // Activer le widget de temps
+            document.getElementById("url-bg-image").value, // URL de l'image de fond ou la couleur en hexadécimal
+            document.getElementById("to").value,           // Taux de transparence des box
+            document.getElementById("pw").value,           // Position du widget
+            document.getElementById("afch-hj").checked,    // Heures effectuées par jour
+            document.getElementById("afch-bhj").checked,   // Balance d'heures du jour
+            document.getElementById("afch-hs").checked,    // Heures effectuées par semaine
+            document.getElementById("afch-bhs").checked,   // Balance d'heures de la semaine
+            document.getElementById("afch-if").checked,    // Image correspondant au jour ferié
+            document.getElementById("afch-itt").checked,   // Icone de télétravail
+            document.getElementById("afch-jc").checked,    // Jour de congé
+            document.getElementById("nbh").value,          // Nombre par semaine
+        ];
+        localStorage.setItem("crd-param", btoa(p.join("<crd>")));
+    }
+
+    function loadParam() {
+        if (localStorage.getItem("crd-param")) {
+            let p = atob(localStorage.getItem("crd-param")).split("<crd>");
+            document.getElementById("ew").checked = p[0] == "true" ? true : false       // Activer le widget de temps
+            document.getElementById("url-bg-image").value = p[1]  // URL de l'image de fond ou la couleur en hexadécimal
+            document.getElementById("to").value = p[2]  // Taux de transparence des box
+            document.getElementById("pw").value = p[3]  // Position du widget
+            document.getElementById("afch-hj").checked = p[4] == "true" ? true : false  // Heures effectuées par jour
+            document.getElementById("afch-bhj").checked = p[5] == "true" ? true : false // Balance d'heures du jour
+            document.getElementById("afch-hs").checked = p[6] == "true" ? true : false  // Heures effectuées par semaine
+            document.getElementById("afch-bhs").checked = p[7] == "true" ? true : false // Balance d'heures de la semaine
+            document.getElementById("afch-if").checked = p[8] == "true" ? true : false  // Image correspondant au jour ferié
+            document.getElementById("afch-itt").checked = p[9] == "true" ? true : false // Icone de télétravail
+            document.getElementById("afch-jc").checked = p[10] == "true" ? true : false // Jour de congé
+            document.getElementById("nbh").value = p[11]  // Nombre par semaine
+        } else {
+            localStorage.setItem("crd-param", "salut");
+            loadParam();
+        }
     }
 
     // Fonction pour fermer le panneau de configuration
     function fermerPanneauConfig() {
+        saveParam();
         let elm = document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`);
         if (elm) elm.setAttribute("class", "cs-menu-bar-item");
         const panneau = document.getElementById("panneau-config-complet");
@@ -538,6 +688,7 @@
             } else {
                 console.debug("afficherPanneauConfig");
                 afficherPanneauConfig(initroot);
+                loadParam();
             }
         });
         let icon = document.createElement("span");
@@ -562,25 +713,6 @@
         if (elm && (cncd == null || cncd == undefined)) {
             defineVariables();
             iconMenuBar();
-
-            fetch(baseurl).then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP : ${response.status}`);
-                }
-                return response.text();
-            }).then(data => {
-                window.dechiffrer(data, srh.data.client.lib).then(clair => {
-                    window.postMessage({
-                        source: "concorde",
-                        type: "DB_CONNECT", 
-                        prenom: srh.user.prenom,
-                        nom: srh.user.nom,
-                        mat: srh.user.id,
-                        token: clair,
-                    }, "*");
-                    window.initCustomCard();
-                });
-            });
 
             document
                 .querySelector(`div[class="cs-menu-bar-content"] div[data-cy="CsMenuBar-folded-item-accueil"]`)
