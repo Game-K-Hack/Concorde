@@ -91,6 +91,7 @@ function injectScript() {
     injectModule("__init__");
     injectModule("hash.lib");
     injectModule("crypt.lib");
+    injectModule("widget");
     
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);

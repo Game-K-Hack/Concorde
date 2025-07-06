@@ -170,8 +170,11 @@
                                     input.type = "checkbox";
                                     input.id = paramKey;
                                     input.checked = param.checked;
+                                    input.style.marginLeft = param.marginLeft + "px";
                                     input.style.marginRight = "10px";
                                     input.style.marginTop = "3px"; // Aligner avec le texte
+                                    input.className = "form-check-input";
+                                    paramDiv.className = "form-check form-switch";
 
                                     const label = document.createElement("label");
                                     label.htmlFor = paramKey;
@@ -490,6 +493,127 @@
                         options: ["1", "2", "3", "3", "4", "5", "6"],
                     },
 
+                    // Heures du jour travaillé
+                    "ihjt": {
+                        type: "checkbox",
+                        label: "Heures du jour travaillé",
+                        checked: true
+                    },
+                    "ihjtt": {
+                        type: "checkbox", 
+                        label: "Texte", 
+                        checked: true, 
+                        marginLeft: 10
+                    },
+
+                    // Balance de la semaine
+                    "ibs": {
+                        type: "checkbox",
+                        label: "Balance de la semaine",
+                        checked: true
+                    },
+                    "ibse": {
+                        type: "checkbox",
+                        label: "Emoji",
+                        checked: true, 
+                        marginLeft: 10
+                    },
+                    "ibst": {
+                        type: "checkbox",
+                        label: "Texte",
+                        checked: true, 
+                        marginLeft: 10
+                    },
+
+                    // Balance des 30 derniers jours
+                    "ib30dj": {
+                        type: "checkbox",
+                        label: "Balance des 30 derniers jours",
+                        checked: false
+                    },
+                    "ib30dje": {
+                        type: "checkbox",
+                        label: "Emoji",
+                        checked: false, 
+                        marginLeft: 10
+                    },
+                    "ib30djt": {
+                        type: "checkbox",
+                        label: "Texte",
+                        checked: false, 
+                        marginLeft: 10
+                    },
+
+                    // Heure de sortie idéale
+                    "ihsi": {
+                        type: "checkbox",
+                        label: "Heure de sortie idéale",
+                        checked: true
+                    },
+                    "ihsit": {
+                        type: "checkbox",
+                        label: "Texte",
+                        checked: false, 
+                        marginLeft: 10
+                    },
+                    "ihsid": {
+                        type: "checkbox",
+                        label: "Détail des heures",
+                        checked: true, 
+                        marginLeft: 50
+                    },
+                    "ihsidt": {
+                        type: "checkbox",
+                        label: "Texte (Détail)",
+                        checked: true, 
+                        marginLeft: 90
+                    },
+                    "ihsidc": {
+                        type: "checkbox",
+                        label: "Couleur (Détail)",
+                        checked: false, 
+                        marginLeft: 90
+                    },
+
+                    // Heure de sortie idéale équilibré
+                    "ihsiq": {
+                        type: "checkbox",
+                        label: "Heure de sortie idéale équilibré",
+                        checked: false
+                    },
+                    "ihsiqt": {
+                        type: "checkbox",
+                        label: "Texte",
+                        checked: false, 
+                        marginLeft: 10
+                    },
+                    "ihsiqd": {
+                        type: "checkbox",
+                        label: "Détail des heures",
+                        checked: false, 
+                        marginLeft: 50
+                    },
+                    "ihsiqdt": {
+                        type: "checkbox",
+                        label: "Texte (Détail)",
+                        checked: false, 
+                        marginLeft: 90
+                    },
+                    "ihsiqdc": {
+                        type: "checkbox",
+                        label: "Couleur (Détail)",
+                        checked: false, 
+                        marginLeft: 90
+                    },
+
+                    idcolors: {
+                        title: "Couleurs",
+                        "chjt": { type: "color", label: "Heures du jour travaillé", value: "#f0c828" },
+                        "cbs": { type: "color", label: "Balance de la semaine", value: "#c84646" },
+                        "cb30dj": { type: "color", label: "Balance des 30 derniers jours", value: "#ff0000" },
+                        "chsi": { type: "color", label: "Heure de sortie idéale", value: "#ad5d93" },
+                        "chsie": { type: "color", label: "Heure de sortie idéale équilibré", value: "#ff0000" },
+                    }
                 },
             },
             {

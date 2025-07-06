@@ -28,6 +28,7 @@
   "content_scripts": [{
       "matches": ["https://portail-rh.algam.net/smartw080/srh/smartrh/index.html*"],
       "js": ["content.js"],
+      "css": ["styles/checkboxstyle.css"],
       "run_at": "document_start"
   }],
   "web_accessible_resources": [{
