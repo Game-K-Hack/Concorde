@@ -827,7 +827,7 @@
                 
                 // Afficher une alerte si des oublis sont détectés (seulement pour la semaine actuelle)
                 if (oublis.length > 0 && currentWeekOffset === 0) {
-                    // ... (code d'affichage des notifications d'oubli)
+                    afficherPopupOubliPointage(oublis);
                 }
                 
                 // Grouper les pointages par jour
@@ -1271,6 +1271,133 @@
             };
         });
         return result;
+    }
+
+    // Fonction pour créer et afficher la popup d'oubli de pointage
+    function afficherPopupOubliPointage(oublis) {
+        let elm = document.getElementById("popupoublipointage");
+        if (elm) { 
+            oublis.forEach(oubli => {
+                const item = document.createElement('li');
+                const dateFormatee = new Date(oubli.date).toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                item.textContent = `${dateFormatee} (${oubli.pointages.length} pointage(s))`;
+                item.style.marginBottom = '5px';
+                if (!elm.querySelector("ul").innerText.includes(item.textContent)) {
+                    elm.querySelector("ul").appendChild(item);
+                }
+            });
+            return
+        }
+        // Créer l'overlay de fond
+        const overlay = document.createElement('div');
+        overlay.id = "popupoublipointage";
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        `;
+
+        // Créer la popup
+        const popup = document.createElement('div');
+        popup.style.cssText = `
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+        `;
+
+        // Titre de la popup
+        const titre = document.createElement('h3');
+        titre.textContent = '⚠️ Oubli de pointage détecté';
+        titre.style.cssText = `
+            margin: 0 0 15px 0;
+            color: #d32f2f;
+            font-size: 18px;
+            text-align: center;
+        `;
+
+        // Message principal
+        const message = document.createElement('p');
+        message.textContent = `Il semblerait que vous ayez oublié de pointer ${oublis.length} jour(s) :`;
+        message.style.cssText = `
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 14px;
+        `;
+
+        // Liste des oublis
+        const listeOublis = document.createElement('ul');
+        listeOublis.style.cssText = `
+            margin: 0 0 20px 0;
+            padding-left: 20px;
+            color: #555;
+        `;
+
+        oublis.forEach(oubli => {
+            const item = document.createElement('li');
+            const dateFormatee = new Date(oubli.date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            item.textContent = `${dateFormatee} (${oubli.pointages.length} pointage(s))`;
+            item.style.marginBottom = '5px';
+            listeOublis.appendChild(item);
+        });
+
+        // Bouton de fermeture
+        const btnFermer = document.createElement('button');
+        btnFermer.textContent = 'Compris';
+        btnFermer.style.cssText = `
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            font-size: 14px;
+        `;
+
+        // Fonction de fermeture
+        const fermerPopup = () => {
+            document.body.removeChild(overlay);
+        };
+
+        // Événements
+        btnFermer.addEventListener('click', fermerPopup);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                fermerPopup();
+            }
+        });
+
+        // Assemblage de la popup
+        popup.appendChild(titre);
+        popup.appendChild(message);
+        popup.appendChild(listeOublis);
+        popup.appendChild(btnFermer);
+        overlay.appendChild(popup);
+
+        // Ajout au DOM
+        document.body.appendChild(overlay);
     }
 
     // Ajout d'une fonction de détection d'oubli de pointage
