@@ -14,6 +14,9 @@
 
     console.debug("loaded");
 
+    const message = "Voici Concorde, l'extension qui permet d'améliorer l'interface SmartRH: ";
+    const url = "https://github.com/Game-K-Hack/Concorde/releases/download/1.1/Concorde.xpi";
+
     let initroot = [];
     let userID = "";
 
@@ -735,6 +738,42 @@
                     idinfodesc: {
                         type: "paragraphe", 
                         value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <a href=\"mailto:concorde.algam@laposte.net\"><strong>concorde.algam@laposte.net</strong></a><br><br>Auteur: <strong>Kélian M.</strong><br>Version: <strong>1.0</strong><br>Identifiant: <strong>" + userID + "</strong>"
+                    }
+                },
+                share: {
+                    title: "Partager l'extension",
+                    "shareemail": {
+                        type: "button",
+                        label: "📧 Email",
+                        onClickFn: function() {
+                            const subject = encodeURIComponent("Concorde, extension pour SmartRH");
+                            const body = encodeURIComponent(`${message}\n${url}`);
+                            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                        },
+                        style: { borderColor: "#4a90e2", color: "#4a90e2", backgroundColor: "#f5f9ff" },
+                    },
+                    "shareteams": {
+                        type: "button",
+                        label: "👥 Teams",
+                        onClickFn: function() {
+                            window.open(`msteams:/l/chat/0/0?users=&message=${encodeURIComponent(message) + encodeURIComponent(url)}`, '_blank');
+                        },
+                        style: { borderColor: "#4a90e2", color: "#4a90e2", backgroundColor: "#f5f9ff" },
+                    },
+                    "sharelink": {
+                        type: "button",
+                        label: "📋 Copier le lien",
+                        onClickFn: function() {
+                            navigator.clipboard.writeText(url).then(() => {
+                                let elm = document.getElementById("sharelink");
+                                let oldelm = elm.style.border;
+                                elm.style.border = "1px solid rgb(144, 226, 74)";
+                                setTimeout(() => { elm.style.border = oldelm }, "1500");
+                            }).catch(() => {
+                                alert('Impossible de copier le lien automatiquement, voici le lien: ' + url);
+                            });
+                        },
+                        style: { borderColor: "#4a90e2", color: "#4a90e2", backgroundColor: "#f5f9ff" },
                     }
                 }
             }
