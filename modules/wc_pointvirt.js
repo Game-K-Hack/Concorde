@@ -804,8 +804,8 @@
             let teletravailData = [];
             
             // Récupérer les données de pointage
-            if (data.response.popu[Object.keys(data.response.popu)[0]]) {
-                const respData = data.response.popu[Object.keys(data.response.popu)[0]][1];
+            if (data.response.popu[srh.user.id][srh.curContract]) {
+                const respData = data.response.popu[srh.user.id][srh.curContract];
                 
                 // Récupérer les pointages
                 if (respData.cpointagereel && respData.cpointagereel.rows) {
@@ -817,9 +817,9 @@
                 if (respData.cabs && respData.cabs.rows) {
                     window.tempoVar = respData.cabs.rows;
                     absencesData = respData.cabs.rows.filter(row => ["CONGP", "CETM", "ABRTT", "MALAH", "ABMTM", "MALAD"].includes(row.mmotif.val));
-                    console.debug("Nombre d'absences trouvées: " + absencesData.length);
+                    // console.debug("Nombre d'absences trouvées: " + absencesData.length);
                     teletravailData = respData.cabs.rows.filter(row => row.mmotif.val == "TTRV");
-                    console.debug("Nombre de TT trouvées: " + teletravailData.length);
+                    // console.debug("Nombre de TT trouvées: " + teletravailData.length);
                 }
                 
                 // Détecter les oublis de pointage
@@ -937,12 +937,13 @@
                     let total = 0;
 
                     // Garder une référence aux pointages originaux pour les détails
-                    const pointagesOriginaux = respData.cpointagereel.rows.filter(p => {
+                    let pointagesOriginaux = respData.cpointagereel.rows.filter(p => {
                         const datePointage = p.datecorr.val;
                         const dateObj = new Date(datePointage + "T" + p.timecorr.val);
                         const jourSemaine = joursSemaine[dateObj.getDay()];
                         return jourSemaine === jour && !p.deleted.val;
                     });
+                    pointagesOriginaux.sort((a, b) => (a.timecorr.val + " " + a.datecorr.val).localeCompare(b.timecorr.val + " " + b.datecorr.val));
 
                     // Parcourir tous les pointages et créer des paires
                     for (let i = 0; i < pointages.length; i++) {
