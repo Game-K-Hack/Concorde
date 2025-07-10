@@ -26,8 +26,8 @@ function sendWebhook(type, description, name, email, id) {
       });
 }
 
-function injectModule(code, path="modules") {
-    fetch(browser.runtime.getURL(`${path}/${code}.js`))
+function injectModule(code, path="modules/") {
+    fetch(browser.runtime.getURL(`${path}${code}.js`))
         .then(response => response.text())
         .then(text => {
             let matches = text.matchAll(/%file\.[a-zA-Z0-9._\/-]{1,50}%/g);
@@ -82,12 +82,7 @@ function initStorage() {
 function injectScript() {
     initStorage();
 
-    const s = document.createElement("script");
-    s.src = chrome.runtime.getURL("injected.js");
-    s.type = "module"; // important pour pouvoir faire import dynamique ensuite
-    (document.head || document.documentElement).appendChild(s);
-    s.remove();
-
+    injectModule("injected", "");
     injectModule("__init__");
     injectModule("hash.lib");
     injectModule("crypt.lib");

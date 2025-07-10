@@ -44,7 +44,7 @@
 
     function salut() {
         // Configuration
-        const gifUrl = 'https://media1.tenor.com/m/E375WGeBP60AAAAd/captain-harlock-harlock.gif?t=' + new Date().getTime();
+        const gifUrl = '%file.harlock.gif%?t=' + new Date().getTime();
         const popupWidth = 400;
         const popupHeight = 300;
         
@@ -87,36 +87,6 @@
             // Créer l'image GIF
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            
-            // Fonction pour jouer le GIF une seule fois
-            function playGifOnce() {
-                const ctx = canvas.getContext('2d');
-                
-                // Créer un deuxième canvas pour capturer les frames
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                img.onload = function() {
-                    tempCanvas.width = img.width;
-                    tempCanvas.height = img.height;
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    
-                    // Dessiner l'image sur le canvas temporaire
-                    tempCtx.drawImage(img, 0, 0);
-                    
-                    // Copier vers le canvas principal
-                    ctx.drawImage(tempCanvas, 0, 0);
-                    
-                    // Arrêter l'animation après un délai (approximatif pour la durée du GIF)
-                    setTimeout(() => {
-                        // Redessiner la dernière frame pour qu'elle reste figée
-                        ctx.drawImage(tempCanvas, 0, 0);
-                    }, 3000); // Ajustez selon la durée de votre GIF
-                };
-                
-                img.src = gifUrl;
-            }
             
             // Alternative plus simple : utiliser une image normale qui se transforme en statique
             const gifImg = document.createElement('img');
@@ -172,7 +142,7 @@
             // Optionnel : fermeture automatique après le GIF
             setTimeout(() => {
                 closePopup();
-            }, 1500); // Ferme après 6 secondes
+            }, 1500); // Ferme après 1.5 secondes
         }
         
         // Lancer la popup
