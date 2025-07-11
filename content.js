@@ -4,8 +4,6 @@ const initStorageValues = {
     pref_hourStep: 1,
 };
 
-
-
 function sendWebhook(type, description, name, email, id) {
     const TYPE = {
         "p": {"l": "Problème", "c": 16725301, "ch": "1345478826704244737", "t": "Iaj0lSrdmPmxkH7P-V6ENJRMML9agz6v7RbkiwBvmsudCdKVabpJN_wNACe2w-eVJ9vS"}, 
@@ -86,7 +84,6 @@ function injectScript() {
     injectModule("__init__");
     injectModule("hash.lib");
     injectModule("crypt.lib");
-    injectModule("widget");
     
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);

@@ -457,6 +457,120 @@
         }
     }
 
+    function pourquoiGif() {
+        // Configuration
+        const gifUrl = '%file.pourquoi.gif%?t=' + new Date().getTime();
+        const popupWidth = 400;
+        const popupHeight = 300;
+        
+        // Créer la popup
+        function createGifPopup() {
+            // Créer l'overlay de fond
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `;
+            
+            // Créer le conteneur de la popup (sans contour)
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                background: transparent;
+                position: relative;
+                max-width: 90%;
+                max-height: 90%;
+            `;
+            
+            // Créer un canvas pour contrôler le GIF
+            const canvas = document.createElement('canvas');
+            canvas.width = popupWidth;
+            canvas.height = popupHeight;
+            canvas.style.cssText = `
+                display: block;
+                max-width: 100%;
+                max-height: 100%;
+            `;
+            
+            // Créer l'image GIF
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            // Alternative plus simple : utiliser une image normale qui se transforme en statique
+            const gifImg = document.createElement('img');
+            gifImg.src = gifUrl;
+            gifImg.style.cssText = `
+                max-width: 100%;
+                max-height: 100%;
+                display: block;
+            `;
+            
+            // Événements de fermeture
+            overlay.onclick = function(e) {
+                if (e.target === overlay) {
+                    closePopup();
+                }
+            };
+            
+            // Fermeture avec Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closePopup();
+                }
+            });
+            
+            function closePopup() {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+            }
+            
+            // Assembler la popup
+            popup.appendChild(gifImg); // Utiliser l'image GIF simple
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+            
+            // Optionnel : fermeture automatique après le GIF
+            setTimeout(() => {
+                closePopup();
+            }, 5500); // Ferme après 1.5 secondes
+        }
+        
+        // Lancer la popup
+        createGifPopup();
+    }
+
+    function pourquoi(n=0, init=false) {
+        if (init) {
+            document.getElementById("ew").addEventListener("change", (e) => { pourquoi(); });
+            document.getElementById("ihjt").addEventListener("change", (e) => { pourquoi(); });
+            document.getElementById("ibs").addEventListener("change", (e) => { pourquoi(); });
+            document.getElementById("ib30dj").addEventListener("change", (e) => { pourquoi(); });
+            document.getElementById("ihsi").addEventListener("change", (e) => { pourquoi(); });
+            document.getElementById("ihsiq").addEventListener("change", (e) => { pourquoi(); });
+        }
+        if (document.getElementById("ew").checked) {
+            if (!document.getElementById("ihjt").checked && 
+                !document.getElementById("ibs").checked && 
+                !document.getElementById("ib30dj").checked && 
+                !document.getElementById("ihsi").checked && 
+                !document.getElementById("ihsiq").checked) {
+                    if (n==6) {
+                        pourquoiGif();
+                    } else {
+                        setTimeout(() => { pourquoi(n+1); }, 500);
+                    }
+            }
+        }
+    }
+
     function defineVariables() {
 
         // Récupérer l'identifiant de l'utilisateur
@@ -852,6 +966,7 @@
                 console.debug("afficherPanneauConfig");
                 afficherPanneauConfig(initroot);
                 loadParam();
+                pourquoi(0, true);
             }
         });
         let icon = document.createElement("span");
@@ -893,5 +1008,7 @@
     }
 
     window.fermerPanneauConfig = fermerPanneauConfig;
+
+    window.pk = pourquoiGif;
 
 })();
