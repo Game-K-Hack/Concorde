@@ -9,6 +9,10 @@
         {
           "version": "1.1",
           "update_link": "https://github.com/Game-K-Hack/Concorde/releases/download/1.1/Concorde.xpi"
+        },
+        {
+          "version": "1.2",
+          "update_link": "https://github.com/Game-K-Hack/Concorde/releases/download/1.2/Concorde.xpi"
         }
       ]
     }

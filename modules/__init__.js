@@ -15,7 +15,7 @@
     console.debug("loaded");
 
     const message = "Voici Concorde, l'extension qui permet d'améliorer l'interface SmartRH: ";
-    const url = "https://github.com/Game-K-Hack/Concorde/releases/download/1.1/Concorde.xpi";
+    const url = "https://github.com/Game-K-Hack/Concorde/releases/download/1.2/Concorde.xpi";
 
     let initroot = [];
     let userID = "";
@@ -457,120 +457,6 @@
         }
     }
 
-    function pourquoiGif() {
-        // Configuration
-        const gifUrl = '%file.pourquoi.gif%?t=' + new Date().getTime();
-        const popupWidth = 400;
-        const popupHeight = 300;
-        
-        // Créer la popup
-        function createGifPopup() {
-            // Créer l'overlay de fond
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.7);
-                z-index: 9999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            `;
-            
-            // Créer le conteneur de la popup (sans contour)
-            const popup = document.createElement('div');
-            popup.style.cssText = `
-                background: transparent;
-                position: relative;
-                max-width: 90%;
-                max-height: 90%;
-            `;
-            
-            // Créer un canvas pour contrôler le GIF
-            const canvas = document.createElement('canvas');
-            canvas.width = popupWidth;
-            canvas.height = popupHeight;
-            canvas.style.cssText = `
-                display: block;
-                max-width: 100%;
-                max-height: 100%;
-            `;
-            
-            // Créer l'image GIF
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            
-            // Alternative plus simple : utiliser une image normale qui se transforme en statique
-            const gifImg = document.createElement('img');
-            gifImg.src = gifUrl;
-            gifImg.style.cssText = `
-                max-width: 100%;
-                max-height: 100%;
-                display: block;
-            `;
-            
-            // Événements de fermeture
-            overlay.onclick = function(e) {
-                if (e.target === overlay) {
-                    closePopup();
-                }
-            };
-            
-            // Fermeture avec Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closePopup();
-                }
-            });
-            
-            function closePopup() {
-                if (document.body.contains(overlay)) {
-                    document.body.removeChild(overlay);
-                }
-            }
-            
-            // Assembler la popup
-            popup.appendChild(gifImg); // Utiliser l'image GIF simple
-            overlay.appendChild(popup);
-            document.body.appendChild(overlay);
-            
-            // Optionnel : fermeture automatique après le GIF
-            setTimeout(() => {
-                closePopup();
-            }, 5500); // Ferme après 1.5 secondes
-        }
-        
-        // Lancer la popup
-        createGifPopup();
-    }
-
-    function pourquoi(n=0, init=false) {
-        if (init) {
-            document.getElementById("ew").addEventListener("change", (e) => { pourquoi(); });
-            document.getElementById("ihjt").addEventListener("change", (e) => { pourquoi(); });
-            document.getElementById("ibs").addEventListener("change", (e) => { pourquoi(); });
-            document.getElementById("ib30dj").addEventListener("change", (e) => { pourquoi(); });
-            document.getElementById("ihsi").addEventListener("change", (e) => { pourquoi(); });
-            document.getElementById("ihsiq").addEventListener("change", (e) => { pourquoi(); });
-        }
-        if (document.getElementById("ew").checked) {
-            if (!document.getElementById("ihjt").checked && 
-                !document.getElementById("ibs").checked && 
-                !document.getElementById("ib30dj").checked && 
-                !document.getElementById("ihsi").checked && 
-                !document.getElementById("ihsiq").checked) {
-                    if (n==6) {
-                        pourquoiGif();
-                    } else {
-                        setTimeout(() => { pourquoi(n+1); }, 500);
-                    }
-            }
-        }
-    }
-
     function defineVariables() {
 
         // Récupérer l'identifiant de l'utilisateur
@@ -586,11 +472,6 @@
                         type: "paragraphe",
                         value: "Modifier les paramètres d'affichage",
                     },
-                    "ew": {
-                        type: "checkbox",
-                        label: "Activer le widget de temps",
-                        checked: true,
-                    },
                     "url-bg-image": {
                         type: "text",
                         label: "URL de l'image de fond ou la couleur en hexadécimal",
@@ -601,136 +482,6 @@
                         label: "Taux de transparence des box",
                         options: ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"],
                     },
-                },
-                idwidget: {
-                    title: "Widget", 
-                    "pw": {
-                        type: "select",
-                        label: "Position du widget",
-                        options: ["1", "2", "3", "3", "4", "5", "6"],
-                    },
-
-                    // Heures du jour travaillé
-                    "ihjt": {
-                        type: "checkbox",
-                        label: "Heures du jour travaillé",
-                        checked: true
-                    },
-                    "ihjtt": {
-                        type: "checkbox", 
-                        label: "Texte", 
-                        checked: true, 
-                        marginLeft: 10
-                    },
-
-                    // Balance de la semaine
-                    "ibs": {
-                        type: "checkbox",
-                        label: "Balance de la semaine",
-                        checked: true
-                    },
-                    "ibse": {
-                        type: "checkbox",
-                        label: "Emoji",
-                        checked: true, 
-                        marginLeft: 10
-                    },
-                    "ibst": {
-                        type: "checkbox",
-                        label: "Texte",
-                        checked: true, 
-                        marginLeft: 10
-                    },
-
-                    // Balance des 30 derniers jours
-                    "ib30dj": {
-                        type: "checkbox",
-                        label: "Balance des 30 derniers jours",
-                        checked: false
-                    },
-                    "ib30dje": {
-                        type: "checkbox",
-                        label: "Emoji",
-                        checked: false, 
-                        marginLeft: 10
-                    },
-                    "ib30djt": {
-                        type: "checkbox",
-                        label: "Texte",
-                        checked: false, 
-                        marginLeft: 10
-                    },
-
-                    // Heure de sortie idéale
-                    "ihsi": {
-                        type: "checkbox",
-                        label: "Heure de sortie idéale",
-                        checked: true
-                    },
-                    "ihsit": {
-                        type: "checkbox",
-                        label: "Texte",
-                        checked: false, 
-                        marginLeft: 10
-                    },
-                    "ihsid": {
-                        type: "checkbox",
-                        label: "Détail des heures",
-                        checked: true, 
-                        marginLeft: 50
-                    },
-                    "ihsidt": {
-                        type: "checkbox",
-                        label: "Texte (Détail)",
-                        checked: true, 
-                        marginLeft: 90
-                    },
-                    "ihsidc": {
-                        type: "checkbox",
-                        label: "Couleur (Détail)",
-                        checked: false, 
-                        marginLeft: 90
-                    },
-
-                    // Heure de sortie idéale équilibré
-                    "ihsiq": {
-                        type: "checkbox",
-                        label: "Heure de sortie idéale équilibré",
-                        checked: false
-                    },
-                    "ihsiqt": {
-                        type: "checkbox",
-                        label: "Texte",
-                        checked: false, 
-                        marginLeft: 10
-                    },
-                    "ihsiqd": {
-                        type: "checkbox",
-                        label: "Détail des heures",
-                        checked: false, 
-                        marginLeft: 50
-                    },
-                    "ihsiqdt": {
-                        type: "checkbox",
-                        label: "Texte (Détail)",
-                        checked: false, 
-                        marginLeft: 90
-                    },
-                    "ihsiqdc": {
-                        type: "checkbox",
-                        label: "Couleur (Détail)",
-                        checked: false, 
-                        marginLeft: 90
-                    },
-
-                    idcolors: {
-                        title: "Couleurs",
-                        "chjt": { type: "color", label: "Heures du jour travaillé", value: "#f0c828" },
-                        "cbs": { type: "color", label: "Balance de la semaine", value: "#c84646" },
-                        "cb30dj": { type: "color", label: "Balance des 30 derniers jours", value: "#ff0000" },
-                        "chsi": { type: "color", label: "Heure de sortie idéale", value: "#ad5d93" },
-                        "chsie": { type: "color", label: "Heure de sortie idéale équilibré", value: "#ff0000" },
-                    }
                 },
             },
             {
@@ -851,7 +602,7 @@
                 idinfo: {
                     idinfodesc: {
                         type: "paragraphe", 
-                        value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <a href=\"mailto:concorde.algam@laposte.net\"><strong>concorde.algam@laposte.net</strong></a><br><br>Auteur: <strong>Kélian M.</strong><br>Version: <strong>1.0</strong><br>Identifiant: <strong>" + userID + "</strong>"
+                        value: "Pour toutes demande vous pouvez me contacter à l'adresse e-mail suivante: <a href=\"mailto:concorde.algam@laposte.net\"><strong>concorde.algam@laposte.net</strong></a><br><br>Auteur: <strong>Kélian M.</strong><br>Version: <strong>1.2</strong><br>Identifiant: <strong>" + userID + "</strong>"
                     }
                 },
                 share: {
@@ -905,10 +656,8 @@
 
     function saveParam() {
         let p = [
-            document.getElementById("ew").checked,         // Activer le widget de temps
             document.getElementById("url-bg-image").value, // URL de l'image de fond ou la couleur en hexadécimal
             document.getElementById("to").value,           // Taux de transparence des box
-            document.getElementById("pw").value,           // Position du widget
             document.getElementById("afch-hj").checked,    // Heures effectuées par jour
             document.getElementById("afch-bhj").checked,   // Balance d'heures du jour
             document.getElementById("afch-hs").checked,    // Heures effectuées par semaine
@@ -924,20 +673,18 @@
     function loadParam() {
         if (localStorage.getItem("crd-param")) {
             let p = atob(localStorage.getItem("crd-param")).split("<crd>");
-            document.getElementById("ew").checked = p[0] == "true" ? true : false       // Activer le widget de temps
-            document.getElementById("url-bg-image").value = p[1]  // URL de l'image de fond ou la couleur en hexadécimal
-            document.getElementById("to").value = p[2]  // Taux de transparence des box
-            document.getElementById("pw").value = p[3]  // Position du widget
-            document.getElementById("afch-hj").checked = p[4] == "true" ? true : false  // Heures effectuées par jour
-            document.getElementById("afch-bhj").checked = p[5] == "true" ? true : false // Balance d'heures du jour
-            document.getElementById("afch-hs").checked = p[6] == "true" ? true : false  // Heures effectuées par semaine
-            document.getElementById("afch-bhs").checked = p[7] == "true" ? true : false // Balance d'heures de la semaine
-            document.getElementById("afch-if").checked = p[8] == "true" ? true : false  // Image correspondant au jour ferié
-            document.getElementById("afch-itt").checked = p[9] == "true" ? true : false // Icone de télétravail
-            document.getElementById("afch-jc").checked = p[10] == "true" ? true : false // Jour de congé
-            document.getElementById("nbh").value = p[11]  // Nombre par semaine
+            document.getElementById("url-bg-image").value = p[0]  // URL de l'image de fond ou la couleur en hexadécimal
+            document.getElementById("to").value = p[1]  // Taux de transparence des box
+            document.getElementById("afch-hj").checked = p[2] == "true" ? true : false  // Heures effectuées par jour
+            document.getElementById("afch-bhj").checked = p[3] == "true" ? true : false // Balance d'heures du jour
+            document.getElementById("afch-hs").checked = p[4] == "true" ? true : false  // Heures effectuées par semaine
+            document.getElementById("afch-bhs").checked = p[5] == "true" ? true : false // Balance d'heures de la semaine
+            document.getElementById("afch-if").checked = p[6] == "true" ? true : false  // Image correspondant au jour ferié
+            document.getElementById("afch-itt").checked = p[7] == "true" ? true : false // Icone de télétravail
+            document.getElementById("afch-jc").checked = p[8] == "true" ? true : false // Jour de congé
+            document.getElementById("nbh").value = p[9]  // Nombre par semaine
         } else {
-            localStorage.setItem("crd-param", "salut");
+            localStorage.setItem("crd-param", "PGNyZD4xMCU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPjM4");
             loadParam();
         }
     }
@@ -989,6 +736,10 @@
         let elm = document.querySelector(`div[data-cy="CsMenuBar-folded-footer-item-profile"]`);
         let cncd = document.querySelector(`div[data-cy="CsMenuBar-folded-item-concorde"]`);
         if (elm && (cncd == null || cncd == undefined)) {
+            if (!localStorage.getItem("crd-param")) {
+                localStorage.setItem("crd-param", "PGNyZD4xMCU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPnRydWU8Y3JkPjM4");
+            }
+
             defineVariables();
             iconMenuBar();
 
@@ -1008,7 +759,5 @@
     }
 
     window.fermerPanneauConfig = fermerPanneauConfig;
-
-    window.pk = pourquoiGif;
 
 })();

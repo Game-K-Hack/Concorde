@@ -4,7 +4,7 @@
 
 <div align="center">
   <a href="https://github.com/Game-K-Hack/Concorde/releases/latest">
-    <img src="https://img.shields.io/static/v1?label=release&message=v1.0&color=blue" alt="Release - v1.0" />
+    <img src="https://img.shields.io/static/v1?label=release&message=v1.2&color=blue" alt="Release - v1.2" />
   </a>
   <a href="#">
     <img src="https://img.shields.io/static/v1?label=version&message=experimental&color=orange" alt="Version - Test" />
@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Game-K-Hack/Concorde/releases/download/1.0/Concorde.xpi">
+  <a href="https://github.com/Game-K-Hack/Concorde/releases/download/1.2/Concorde.xpi">
     <img src="https://img.shields.io/badge/Télécharger pour Firefox-FF7139?logo=firefox&logoColor=fff&style=for-the-badge" alt="Download for Firefox" />
   </a>
 </p>

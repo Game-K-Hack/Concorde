@@ -13,7 +13,7 @@
     console.ok = function(...data) { console.log("[ OK ] (" + module_name + ") " + data); }
 
     function setBackground() {
-        let p = atob(localStorage.getItem("crd-param")).split("<crd>")[1];
+        let p = atob(localStorage.getItem("crd-param")).split("<crd>")[0];
         let elm = document.getElementById(`csAccuielContainer`);
 
         const isHexColor = /^(#|)([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/i.test(p);
@@ -38,7 +38,7 @@
 
     function setStyle() {
         let p = atob(localStorage.getItem("crd-param")).split("<crd>");
-        p = 1 - (parseFloat(p[2]) / 100);
+        p = 1 - (parseFloat(p[1]) / 100);
         let tab = document.getElementById(`main-tabs`);
         tab.querySelector(`ul[class="ui-tabs-nav ui-corner-all ui-helper-reset ui-helper-clearfix ui-widget-header"]`).style.padding = `unset`;
         tab.style.minHeight = `100vh`;

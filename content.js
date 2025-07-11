@@ -84,7 +84,7 @@ function injectScript() {
     injectModule("__init__");
     injectModule("hash.lib");
     injectModule("crypt.lib");
-    
+
     let iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     iframe.contentWindow.console.log("[ OK ] injecting script");
