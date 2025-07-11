@@ -49,7 +49,7 @@
 
     let dataWeek = {};
 
-    const WORKHOURS = parseInt(atob(localStorage.getItem("crd-param")).split("<crd>")[11]);
+    const WORKHOURS = parseInt(atob(localStorage.getItem("crd-param")).split("<crd>")[9]);
 
     // Fonction pour initialiser le calendrier
     function initCalendar() {
@@ -125,7 +125,7 @@
     // Fonction pour marquer un jour comme jour de télétravail
     function markAsTeletravail(jour) {
         let p = atob(localStorage.getItem("crd-param")).split("<crd>");
-        if (p[9] == "true" ? false : true) {return}
+        if (p[7] == "true" ? false : true) {return}
 
         const jourNormalise = jour.toLowerCase();
         const dayElement = document.getElementById(`day-${jourNormalise}`);
@@ -141,7 +141,7 @@
     // Fonction pour marquer un jour comme congé
     function markAsConge(jour, libelle = "Congé") {
         let p = atob(localStorage.getItem("crd-param")).split("<crd>");
-        if (p[10] == "true" ? false : true) {return}
+        if (p[8] == "true" ? false : true) {return}
 
         const jourNormalise = jour.toLowerCase();
         const dayElement = document.getElementById(`day-${jourNormalise}`);
@@ -176,7 +176,7 @@
             if (eventsElement) {
                 eventsElement.style.pointerEvents = "none";
                 eventsElement.classList.add("ferie-background");
-                if (param[8] == "true") {
+                if (param[6] == "true") {
                     eventsElement.style.backgroundImage = `linear-gradient(rgb(240, 240, 250), rgba(240, 240, 250, 0.5)), url(${image})`;
                 }
                 let p = document.createElement("p");
@@ -804,9 +804,12 @@
             let teletravailData = [];
             
             // Récupérer les données de pointage
-            if (data.response.popu[srh.user.id][srh.curContract]) {
-                const respData = data.response.popu[srh.user.id][srh.curContract];
-                
+            if (data.response.popu) {
+                let respData = data.response.popu;
+                if (respData[srh.user.id] && respData[srh.user.id][srh.curContract]) {
+                    respData = respData[srh.user.id][srh.curContract];
+                }
+
                 // Récupérer les pointages
                 if (respData.cpointagereel && respData.cpointagereel.rows) {
                     pointagesData = respData.cpointagereel.rows.filter(row => !row.deleted.val);
@@ -1058,11 +1061,11 @@
                 const c = ((WORKHOURS/5)*3600000) <= ms ? "green" : "red";
                 let t = "";
 
-                if (p[4] == "true" ? true : false) {
+                if (p[2] == "true" ? true : false) {
                     t += `${w} `;
                 }
 
-                if (p[5] == "true" ? true : false) {
+                if (p[3] == "true" ? true : false) {
                     t += `<span style="color:${c}">(${s}${b})</span>`;
                 }
 
@@ -1078,12 +1081,12 @@
     function displayHourWeekWork(ms, weekMS) {
         let p = atob(localStorage.getItem("crd-param")).split("<crd>");
 
-        if (p[6] == "true" ? true : false) {
+        if (p[4] == "true" ? true : false) {
             let w = document.getElementById("current-week-hours-work");
             w.innerText = formatMS2Hour(ms);
         }
 
-        if (p[7] == "true" ? true : false) {
+        if (p[5] == "true" ? true : false) {
             let b = document.getElementById("current-week-hours-balance");
             b.innerText = " (" + (weekMS <= ms ? "+" : "-") + formatMS2Hour(Math.abs(weekMS-ms)) + ")";
             b.style.color = weekMS <= ms ? "green" : "red";
